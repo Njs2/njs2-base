@@ -1,0 +1,35 @@
+service: serverless-framework
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: prod
+  region: ap-south-1
+  role: arn:aws:iam::667505010803:role/service-role/lambda-role-8vrgj12i
+  timeout: 10
+
+plugins:
+  - serverless-offline
+  - serverless-prune-plugin
+
+custom:
+  prune:
+    automatic: true
+    number: 1
+
+functions:
+  api:
+    handler: index.execute
+    events:
+     - http:
+         path: /{proxy+}
+         method: ANY
+         cors: true
+
+  postman:
+    handler: postman.execute
+    events:
+     - http:
+         path: /postman
+         method: ANY
+         cors: true

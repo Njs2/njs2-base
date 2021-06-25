@@ -1,0 +1,19 @@
+{
+  "MODE": "DEV",
+  "PROJECT_TITLE": "NJS-PROJECT",
+  "PROJECT_DESCRIPTION": "",
+  "PROJECT_VERSION": "0.0.1",
+  "API_ENDPOINT": "",
+  "WSS_BASE_URL": "http://localhost:3001",
+  "DATABASE_TYPE": "mysql",
+  "SQL_DB_HOST": "localhost",
+  "SQL_DB_NAME": "test",
+  "SQL_DB_PORT": 3306,
+  "SQL_DB_USER": "root",
+  "SQL_DB_PASSWORD": "password",
+  "JWT_SECRET": "123",
+  "SALT_ROUNDS": 8,
+  "ACCESS_TOKEN_DECODED_KEY": "user_id",
+  "ACCESS_TOKEN_KEY": "access_token",
+  "AUTH_TABLE_NAME": "user"
+}

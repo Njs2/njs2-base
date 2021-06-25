@@ -1,0 +1,14 @@
+[
+  {
+    "path": "room/join",
+    "methodName": "room.join"
+  },
+  {
+    "path": "room/join/:userId",
+    "methodName": "room.join"
+  },
+  {
+    "path": "room/join/:userId/:roomId",
+    "methodName": "room.join"
+  }
+]

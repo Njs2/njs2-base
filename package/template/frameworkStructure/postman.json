@@ -1,0 +1,87 @@
+{
+  "info": {
+    "_postman_id": "NJS2-demo-prod-v1",
+    "name": "NJS2-demo",
+    "description": "# Njs2 demo API's",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "auth-apple/login",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/auth-apple/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "auth-apple",
+            "login"
+          ],
+          "query": [
+            {
+              "key": "apple_id"
+            },
+            {
+              "key": "android_push_token"
+            },
+            {
+              "key": "ios_push_token",
+              "disable": true
+            },
+            {
+              "key": "referral_code"
+            },
+            {
+              "key": "device_token"
+            },
+            {
+              "key": "login_type"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "friends/list",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "access_token",
+            "type": "text",
+            "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozNzQsImlhdCI6MTYwNzU4MTUzM30.HldDgcOoN1gzF6kO6psqeKrMVrrn4P-Alwcsj4KHIcQ"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/friends/list",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "friends",
+            "list"
+          ],
+          "query": [
+            {
+              "key": "friendship_status"
+            },
+            {
+              "key": "limit"
+            },
+            {
+              "key": "last_friend_id"
+            },
+            {
+              "key": "return_fields"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
