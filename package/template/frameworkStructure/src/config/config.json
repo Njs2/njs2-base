@@ -5,6 +5,7 @@
   "PROJECT_VERSION": "0.0.1",
   "API_ENDPOINT": "",
   "WSS_BASE_URL": "http://localhost:3001",
+  "SOCKET_SYSTEM": "API_GATEWAY",
   "DATABASE_TYPE": "mysql",
   "SQL_DB_HOST": "localhost",
   "SQL_DB_NAME": "test",
@@ -15,5 +16,12 @@
   "SALT_ROUNDS": 8,
   "ACCESS_TOKEN_DECODED_KEY": "user_id",
   "ACCESS_TOKEN_KEY": "access_token",
-  "AUTH_TABLE_NAME": "user"
+  "AUTH_TABLE_NAME": "user",
+  "njs2-base": {
+    "USE_LAMBDA_ROLE": true,
+    "AWS_REGION": "",
+    "AWS_ACCESS_KEY_ID": "",
+    "AWS_SECRET_ACCESS_KEY_ID": "",
+    "AWS_ROLE_ARN": ""
+  }
 }

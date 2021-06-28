@@ -26,6 +26,24 @@ functions:
          method: ANY
          cors: true
 
+  connectHandler:
+    handler: src/events/connectHandler.connectHandler
+    events:
+      - websocket: 
+          route: $connect
+
+  disconnectHandler:
+    handler: src/events/disconnectHandler.disconnectHandler
+    events:
+      - websocket:
+          route: $disconnect
+
+  defaultSocket:
+    handler: listener.sockets
+    events:
+      - websocket:
+          route: $default
+
   postman:
     handler: postman.execute
     events:
