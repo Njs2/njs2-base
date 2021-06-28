@@ -1,7 +1,7 @@
 require('bytenode');
 module.exports.disconnectHandler = async (event) => {
   try {
-    const websocketBase = require('njs2-websocket/websocketHandler');
+    const { sockets: websocketBase } = require('njs2-base');
     const res = await websocketBase.disconnect(event.requestContext.connectionId);
 
     if (res) {

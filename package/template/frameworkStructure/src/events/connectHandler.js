@@ -2,7 +2,7 @@ require('bytenode');
 module.exports.connectHandler = async (event) => {
   try {
     const { access_token: accessToken } = event.queryStringParameters;
-    const websocketBase = require('njs2-websocket/websocketHandler');
+    const { sockets: websocketBase } = require('njs2-base');
     const res = await websocketBase.connect(accessToken, event.requestContext.connectionId);
 
     if (res) {
