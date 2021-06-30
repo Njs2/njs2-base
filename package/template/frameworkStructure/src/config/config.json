@@ -8,6 +8,7 @@
   "SOCKET_SYSTEM": "API_GATEWAY",
   "WSS_PORT": 3001,
   "WSS_BASE_URL": "http://localhost:3001",
+  "SOCKET_SYSTEM": "API_GATEWAY",
   "DATABASE_TYPE": "mysql",
   "SQL_DB_HOST": "localhost",
   "SQL_DB_NAME": "test",

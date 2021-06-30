@@ -1,0 +1,6 @@
+[
+  {
+    "event": "ping",
+    "handler": "./src/events/pingHandler.js"
+  }
+]
