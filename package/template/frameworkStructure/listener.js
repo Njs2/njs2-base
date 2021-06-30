@@ -1,6 +1,7 @@
 require('bytenode');
 require("njs2-base/base/env");
 const Executor = require("njs2-base/base/executor.class");
+const { sockets: njsWebsocket } = require('njs2-base');
 
 module.exports.connectHandler = async (event) => {
   try {
@@ -40,7 +41,6 @@ module.exports.sockets = async (event) => {
 
     const executor = new Executor();
     await executor.executeMethod(wsEvent);
-    const { sockets: njsWebsocket } = require('njs2-base');
     await njsWebsocket.emit(event.requestContext.connectionId, { "action": body.action, 'method': body.method, "body": executor.getResponse() });
     return { statusCode: 200, body: {} };
   } catch (e) {

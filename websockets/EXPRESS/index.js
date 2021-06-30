@@ -7,6 +7,7 @@ const {
 
 const io = require("socket.io")({
   serveClient: false,
+  transports: ['websocket'],
   cors: {
     origin: '*',
   }

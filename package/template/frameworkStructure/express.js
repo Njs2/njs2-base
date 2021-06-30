@@ -37,4 +37,4 @@ server.listen(process.env.API_PORT, () => {
   console.log(`App listening on port ${process.env.API_PORT}`);
 });
 
-require('njs2-base').socket.init();
+require('njs2-base').sockets.init();
