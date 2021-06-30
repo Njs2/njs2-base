@@ -6,7 +6,7 @@
   "API_ENDPOINT": "",
   "API_PORT": 3000,
   "SOCKET_SYSTEM": "API_GATEWAY",
-  "WS_PORT": 3001,
+  "WSS_PORT": 3001,
   "WSS_BASE_URL": "http://localhost:3001",
   "DATABASE_TYPE": "mysql",
   "SQL_DB_HOST": "localhost",
