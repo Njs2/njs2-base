@@ -19,7 +19,7 @@ custom:
 
 functions:
   api:
-    handler: index.execute
+    handler: serverless.execute
     events:
      - http:
          path: /{proxy+}

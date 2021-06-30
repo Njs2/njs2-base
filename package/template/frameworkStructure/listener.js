@@ -1,37 +1,51 @@
 require('bytenode');
-const path = require('path');
-const wssEvents = require(path.join(process.cwd(), "src/config/listener.json"));
 require("njs2-base/base/env");
-const dbManager = require("njs2-base/package/dbManager").dbManager;
+const Executor = require("njs2-base/base/executor.class");
+
+module.exports.connectHandler = async (event) => {
+  try {
+    return { code: 200, body: {} };
+  } catch (e) {
+    console.log(e);
+  }
+  return { statusCode: 500, body: 'Failed to connect' };
+}
+
+
+module.exports.disconnectHandler = async (event) => {
+  try {
+    return { code: 200, body: {} };
+  } catch (e) {
+    console.log(e);
+  }
+  return { statusCode: 500, body: 'Failed to disconnect' };
+}
+
 
 module.exports.sockets = async (event) => {
+  const body = typeof event.body == "string" ? JSON.parse(event.body) : event.body;
   try {
-    const body = typeof event.body == "string" ? JSON.parse(event.body) : event.body;
-    const action = body.action;
-    const accessToken = body.access_token;
-    let userObj;
-
-    // Map required route path
-    const requestMap = wssEvents.filter(request => {
-      return request.event == action;
-    });
-
-    if (requestMap.length == 0) {
-      return { statusCode: 403, body: 'event not found' };
+    let wsEvent = {};
+    wsEvent.httpMethod = body.method;
+    if (body.method == 'GET') {
+      wsEvent.queryStringParameters = body.body;
+    } else if (body.method == 'POST') {
+      wsEvent.body = body.body;
     }
 
-    const validatedUser = await dbManager.verifyAccessToken(accessToken);
-    if (!validatedUser) {
-      return { code: 403, body: 'Invalid access_token' };
-    }
-    userObj = validatedUser;
+    wsEvent.pathParameters = {
+      proxy: body.action
+    };
+    wsEvent.headers = body.headers && typeof body.headers == 'object' ? body.headers : {};
 
-    // Import route handler and execute
-    const execute = require(requestMap[0].handler);
-    await execute.handler(body, userObj);
+    const executor = new Executor();
+    await executor.executeMethod(wsEvent);
+    const { sockets: njsWebsocket } = require('njs2-base');
+    await njsWebsocket.emit(event.requestContext.connectionId, { "action": body.action, 'method': body.method, "body": executor.getResponse() });
     return { statusCode: 200, body: {} };
   } catch (e) {
     console.log(e);
+    await njsWebsocket.emit(event.requestContext.connectionId, { "action": body.action, 'method': body.method, 'error': 'Invalid Request' });
     return { statusCode: 500, body: 'Internal server error' };
   }
 }

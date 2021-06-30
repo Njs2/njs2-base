@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
-const pjson = require('../package.json');
-const { loadConfig } = require("../base/loadConfig");
+const pjson = require('../../package.json');
+const { loadConfig } = require("../../base/loadConfig");
 const {
   WSS_BASE_URL,
   USE_LAMBDA_ROLE
