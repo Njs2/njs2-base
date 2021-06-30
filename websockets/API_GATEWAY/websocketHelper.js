@@ -1,5 +1,5 @@
-const pjson = require('../package.json');
-const { loadConfig } = require("../base/loadConfig");
+const pjson = require('../../package.json');
+const { loadConfig } = require("../../base/loadConfig");
 
 const {
   AWS_REGION,

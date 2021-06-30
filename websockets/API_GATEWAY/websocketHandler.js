@@ -1,5 +1,5 @@
-require("../base/env");
-const dbManager = require("../package/dbManager").dbManager;
+require("../../base/env");
+const dbManager = require("../../package/dbManager").dbManager;
 
 const connect = async (accessToken, socketId) => {
   if (!accessToken || typeof accessToken != "string" || accessToken.trim() == "") {

@@ -27,13 +27,13 @@ functions:
          cors: true
 
   connectHandler:
-    handler: src/events/connectHandler.connectHandler
+    handler: listener.connectHandler
     events:
       - websocket: 
           route: $connect
 
   disconnectHandler:
-    handler: src/events/disconnectHandler.disconnectHandler
+    handler: listener.disconnectHandler
     events:
       - websocket:
           route: $disconnect

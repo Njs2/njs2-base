@@ -3,7 +3,7 @@ module.exports.getSQLConnection = require("./package/dbConnect").getSQLConnectio
 const pjson = require('./package.json');
 const { loadConfig } = require("./base/loadConfig");
 const {
-  SOCKET_SYSTEM
+  SOCKET_SYSTEM: SOCKET_SYSTEM_TYPE
 } = loadConfig(["SOCKET_SYSTEM"], pjson.name);
 const SOCKET_SYSTEM = {
   "API_GATEWAY": {
@@ -19,4 +19,4 @@ const SOCKET_SYSTEM = {
   }
 };
 
-module.exports.sockets = SOCKET_SYSTEM[process.env.SOCKET_SYSTEM];
+module.exports.sockets = SOCKET_SYSTEM[SOCKET_SYSTEM_TYPE];
