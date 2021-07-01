@@ -12,13 +12,20 @@ app.use(express.urlencoded({
   extended: true
 }));
 
+app.get('/postman', (req, res) => {
+  res.send(require('./postman.json'));
+});
+
 app.all("*", async (req, res) => {
 
   let event = {};
   event.httpMethod = req.method;
   event.queryStringParameters = req.query;
   event.body = req.body;
-  event.path = req.path;
+  event.pathParameters = {
+    proxy: req.path.length ? req.path.slice(1) : req.path
+  };
+  event.headers = req.headers;
 
   const executor = new Executor();
   await executor.executeMethod(event);
@@ -29,3 +36,5 @@ app.all("*", async (req, res) => {
 server.listen(process.env.API_PORT, () => {
   console.log(`App listening on port ${process.env.API_PORT}`);
 });
+
+require('njs2-base').sockets.init();
