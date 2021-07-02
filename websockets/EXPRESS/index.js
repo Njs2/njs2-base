@@ -2,8 +2,8 @@ const pjson = require('../../package.json');
 const { loadConfig } = require("../../base/loadConfig");
 const path = require('path');
 const {
-  WSS_PORT
-} = loadConfig(["WSS_PORT"], pjson.name);
+  SOCKET_PORT
+} = loadConfig(["SOCKET_PORT"], pjson.name);
 
 const io = require("socket.io")({
   serveClient: false,
@@ -55,8 +55,8 @@ const init = () => {
     });
   });
 
-  server.listen(WSS_PORT, () => {
-    console.log("Socket server started at port: ", WSS_PORT)
+  server.listen(SOCKET_PORT, () => {
+    console.log("Socket server started at port: ", SOCKET_PORT);
   });
 }
 
