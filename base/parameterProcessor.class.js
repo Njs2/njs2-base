@@ -2,6 +2,7 @@ const querystring = require('querystring');
 const Autoload = require('./autoload.class');
 const dbManager = require("../package/dbManager").dbManager;
 const { decrypt } = require("./encryption");
+const { ENCRYPTION_ENABLED } = JSON.parse(process.env.ENCRYPTION);
 
 class ParameterProcessor extends baseAction {
 
@@ -14,7 +15,7 @@ class ParameterProcessor extends baseAction {
       //remove the request query/body parameters from request object
       if (event.httpMethod == 'GET') {
         requestData = event.queryStringParameters;
-        if (process.env.ENCRYPTION.ENCRYPTION_ENABLED) {
+        if (ENCRYPTION_ENABLED && requestData.data) {
           requestData = decrypt(requestData.data);
         }
         event.queryStringParameters = null;
@@ -22,11 +23,14 @@ class ParameterProcessor extends baseAction {
       } else if (event.httpMethod == 'POST') {
         if (typeof (event.body) == "string") {
           requestData = querystring.parse(event.body);
-          if (process.env.ENCRYPTION.ENCRYPTION_ENABLED) {
+          if (ENCRYPTION_ENABLED && requestData.data) {
             requestData = decrypt(requestData.data);
           }
         } else {
           requestData = event.body;
+          if (ENCRYPTION_ENABLED && requestData.data) {
+            requestData = decrypt(requestData.data);
+          }
         }
         event.body = null;
       }
@@ -37,6 +41,7 @@ class ParameterProcessor extends baseAction {
         });
       }
 
+      requestData = requestData ? requestData : {};
       Autoload.requestData = requestData;
 
       this.removeUndefinedParameters(params, {}, requestData);
@@ -54,7 +59,7 @@ class ParameterProcessor extends baseAction {
           return false;
         }
 
-        if (process.env.ENCRYPTION.ENCRYPTION_ENABLED) {
+        if (ENCRYPTION_ENABLED) {
           accessToken = decrypt(accessToken);
         }
 

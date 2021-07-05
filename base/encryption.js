@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const { Buffer } = require('buffer');
-const { ENCRYPTION_KEY: key, ENCRYPTION_IV: secretiv } = process.env.ENCRYPTION;
+const { ENCRYPTION_KEY: key, ENCRYPTION_IV: secretiv } = JSON.parse(process.env.ENCRYPTION);
 const algorithm = "aes-256-cbc";
 
 function encrypt(text) {
