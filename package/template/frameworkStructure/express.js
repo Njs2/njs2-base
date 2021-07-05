@@ -39,12 +39,4 @@ server.listen(process.env.API_PORT, () => {
 
 require('njs2-base').sockets.init();
 
-const reactApp = express();
-reactApp.use(express.static("cms/build"));
-reactApp.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "cms/build", "index.html"));
-});
-
-reactApp.listen(process.env.CMS_PORT, () => {
-  console.log(`CMS server started on port ${process.env.CMS_PORT}`);
-});
+require('./cms').init();
