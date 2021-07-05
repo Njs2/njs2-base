@@ -6,6 +6,7 @@ glbvalue = require(path.join(process.cwd(), "src/global/index.js"));
 
 const requireDir = require('require-dir');
 const Autoload = require('./autoload.class');
+const { encrypt } = require("./encryption");
 const ParameterProcessor = require('./parameterProcessor.class');
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
 
@@ -117,6 +118,9 @@ class executor extends baseAction {
 
   async executeAction(action) {
     this.responseData = await action.executeMethod(Autoload.requestData);
+    if (process.env.ENCRYPTION.ENCRYPTION_ENABLED) {
+      this.responseData = encrypt(this.responseData);
+    }
     return true;
   }
 

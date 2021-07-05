@@ -1,6 +1,7 @@
 const querystring = require('querystring');
 const Autoload = require('./autoload.class');
 const dbManager = require("../package/dbManager").dbManager;
+const { decrypt } = require("./encryption");
 
 class ParameterProcessor extends baseAction {
 
@@ -13,11 +14,17 @@ class ParameterProcessor extends baseAction {
       //remove the request query/body parameters from request object
       if (event.httpMethod == 'GET') {
         requestData = event.queryStringParameters;
+        if (process.env.ENCRYPTION.ENCRYPTION_ENABLED) {
+          requestData = decrypt(requestData.data);
+        }
         event.queryStringParameters = null;
         event.multiValueQueryStringParameters = null;
       } else if (event.httpMethod == 'POST') {
         if (typeof (event.body) == "string") {
           requestData = querystring.parse(event.body);
+          if (process.env.ENCRYPTION.ENCRYPTION_ENABLED) {
+            requestData = decrypt(requestData.data);
+          }
         } else {
           requestData = event.body;
         }
@@ -38,13 +45,17 @@ class ParameterProcessor extends baseAction {
 
       //process the user_id and access_token parameters here
       if (isSecured) {
-        const { access_token: accessToken } = event.headers;
+        let { access_token: accessToken } = event.headers;
 
         if (!accessToken || typeof accessToken != "string" || accessToken.trim() == "") {
           let options = [];
           options.paramName = 'access_token';
           this.setResponse("INVALID_INPUT_EMPTY", options);
           return false;
+        }
+
+        if (process.env.ENCRYPTION.ENCRYPTION_ENABLED) {
+          accessToken = decrypt(accessToken);
         }
 
         const validatedUser = await dbManager.verifyAccessToken(accessToken);

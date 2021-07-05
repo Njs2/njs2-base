@@ -274,15 +274,19 @@ dbManager.verifyTbl = async (tableName, model) => {
 
 dbManager.verifyAccessToken = async (accessToken) => {
   const jwt = require("./jwt");
-  const decodedVal = await jwt.decodeJwtToken(accessToken, process.env.JWT_SECRET);
-  if (!decodedVal || !decodedVal[process.env.ACCESS_TOKEN_DECODED_KEY]) {
+  const decodedVal = await jwt.decodeJwtToken(accessToken, process.env.AUTH.JWT_SECRET);
+  if (!decodedVal || !decodedVal[process.env.AUTH.ACCESS_TOKEN_ID_KEY]) {
     return false;
   }
 
-  const verifedUser = await dbManager.find(process.env.AUTH_TABLE_NAME, { [process.env.ACCESS_TOKEN_KEY]: accessToken, [process.env.ACCESS_TOKEN_DECODED_KEY]: decodedVal[process.env.ACCESS_TOKEN_DECODED_KEY] });
-  if (verifedUser.length > 0) {
-    return verifedUser[0];
-  };
+  if (process.env.AUTH.AUTH_LEVEL == "MEDIUM") {
+    const verifedUser = await dbManager.find(process.env.AUTH.AUTH_TABLE_NAME, { [process.env.AUTH.ACCESS_TOKEN_KEY]: accessToken, [process.env.AUTH.ACCESS_TOKEN_ID_KEY]: decodedVal[process.env.AUTH.ACCESS_TOKEN_ID_KEY] });
+    if (verifedUser.length > 0) {
+      return verifedUser[0];
+    };
+  } else {
+    return { [process.env.AUTH.ACCESS_TOKEN_ID_KEY]: decodedVal[process.env.AUTH.ACCESS_TOKEN_ID_KEY] };
+  }
 
   return false;
 };
