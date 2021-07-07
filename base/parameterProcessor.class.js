@@ -1,6 +1,8 @@
 const querystring = require('querystring');
 const Autoload = require('./autoload.class');
 const dbManager = require("../package/dbManager").dbManager;
+const { decrypt } = require("./encryption");
+const { ENCRYPTION_ENABLED } = JSON.parse(process.env.ENCRYPTION);
 
 class ParameterProcessor extends baseAction {
 
@@ -13,13 +15,22 @@ class ParameterProcessor extends baseAction {
       //remove the request query/body parameters from request object
       if (event.httpMethod == 'GET') {
         requestData = event.queryStringParameters;
+        if (ENCRYPTION_ENABLED && requestData.data) {
+          requestData = decrypt(requestData.data);
+        }
         event.queryStringParameters = null;
         event.multiValueQueryStringParameters = null;
       } else if (event.httpMethod == 'POST') {
         if (typeof (event.body) == "string") {
           requestData = querystring.parse(event.body);
+          if (ENCRYPTION_ENABLED && requestData.data) {
+            requestData = decrypt(requestData.data);
+          }
         } else {
           requestData = event.body;
+          if (ENCRYPTION_ENABLED && requestData.data) {
+            requestData = decrypt(requestData.data);
+          }
         }
         event.body = null;
       }
@@ -30,6 +41,7 @@ class ParameterProcessor extends baseAction {
         });
       }
 
+      requestData = requestData ? requestData : {};
       Autoload.requestData = requestData;
 
       this.removeUndefinedParameters(params, {}, requestData);
@@ -38,13 +50,17 @@ class ParameterProcessor extends baseAction {
 
       //process the user_id and access_token parameters here
       if (isSecured) {
-        const { access_token: accessToken } = event.headers;
+        let { access_token: accessToken } = event.headers;
 
         if (!accessToken || typeof accessToken != "string" || accessToken.trim() == "") {
           let options = [];
           options.paramName = 'access_token';
           this.setResponse("INVALID_INPUT_EMPTY", options);
           return false;
+        }
+
+        if (ENCRYPTION_ENABLED) {
+          accessToken = decrypt(accessToken);
         }
 
         const validatedUser = await dbManager.verifyAccessToken(accessToken);

@@ -28,24 +28,25 @@ module.exports.sockets = async (event) => {
   try {
     let wsEvent = {};
     wsEvent.httpMethod = body.method;
+    wsEvent.requestId = body.request_id;
+    wsEvent.headers = body.headers && typeof body.headers == 'object' ? body.headers : {};
+    wsEvent.pathParameters = {
+      proxy: body.action
+    };
+
     if (body.method == 'GET') {
       wsEvent.queryStringParameters = body.body;
     } else if (body.method == 'POST') {
       wsEvent.body = body.body;
     }
 
-    wsEvent.pathParameters = {
-      proxy: body.action
-    };
-    wsEvent.headers = body.headers && typeof body.headers == 'object' ? body.headers : {};
-
     const executor = new Executor();
     await executor.executeMethod(wsEvent);
-    await njsWebsocket.emit(event.requestContext.connectionId, { "action": body.action, 'method': body.method, "body": executor.getResponse() });
+    await njsWebsocket.emit(event.requestContext.connectionId, { "request_id": body.request_id, "body": executor.getResponse() });
     return { statusCode: 200, body: {} };
   } catch (e) {
     console.log(e);
-    await njsWebsocket.emit(event.requestContext.connectionId, { "action": body.action, 'method': body.method, 'error': 'Invalid Request' });
+    await njsWebsocket.emit(event.requestContext.connectionId, { "request_id": body.request_id, 'error': 'Invalid Request' });
     return { statusCode: 500, body: 'Internal server error' };
   }
 }

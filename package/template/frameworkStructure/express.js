@@ -38,3 +38,5 @@ server.listen(process.env.API_PORT, () => {
 });
 
 require('njs2-base').sockets.init();
+
+require('./cms');
