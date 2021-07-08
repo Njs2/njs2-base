@@ -120,7 +120,7 @@ class executor extends baseAction {
   async executeAction(action) {
     this.responseData = await action.executeMethod(Autoload.requestData);
     if (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && Autoload.encryptionState)) {
-      this.responseData = encrypt(this.responseData);
+      this.responseData = encrypt(JSON.stringify(this.responseData));
     }
     return true;
   }

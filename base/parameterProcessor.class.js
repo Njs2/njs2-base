@@ -18,7 +18,7 @@ class ParameterProcessor extends baseAction {
         requestData = event.queryStringParameters;
         encryptionState = requestData.enc_state == 1;
         if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
-          requestData = requestData.data ? decrypt(requestData.data) : {};
+          requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
         }
         event.queryStringParameters = null;
         event.multiValueQueryStringParameters = null;
@@ -27,13 +27,13 @@ class ParameterProcessor extends baseAction {
           requestData = querystring.parse(event.body);
           encryptionState = requestData.enc_state == 1;
           if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
-            requestData = requestData.data ? decrypt(requestData.data) : {};
+            requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
           }
         } else {
           requestData = event.body;
           encryptionState = requestData.enc_state == 1;
           if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
-            requestData = requestData.data ? decrypt(requestData.data) : {};
+            requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
           }
         }
         event.body = null;
@@ -64,7 +64,7 @@ class ParameterProcessor extends baseAction {
           return false;
         }
 
-        if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
+        if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
           accessToken = decrypt(accessToken);
         }
 
