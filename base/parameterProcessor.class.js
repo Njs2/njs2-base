@@ -2,12 +2,13 @@ const querystring = require('querystring');
 const Autoload = require('./autoload.class');
 const dbManager = require("../package/dbManager").dbManager;
 const { decrypt } = require("./encryption");
-const { ENCRYPTION_ENABLED } = JSON.parse(process.env.ENCRYPTION);
+const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
 
 class ParameterProcessor extends baseAction {
 
   async processParameter(initializer, event, action) {
     let requestData;
+    let encryptionState = true;
     const params = initializer.getParameter();
     const isSecured = initializer.pkgInitializer.isSecured;
 
@@ -15,21 +16,24 @@ class ParameterProcessor extends baseAction {
       //remove the request query/body parameters from request object
       if (event.httpMethod == 'GET') {
         requestData = event.queryStringParameters;
-        if (ENCRYPTION_ENABLED && requestData.data) {
-          requestData = decrypt(requestData.data);
+        encryptionState = requestData.enc_state == 1;
+        if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
+          requestData = requestData.data ? decrypt(requestData.data) : {};
         }
         event.queryStringParameters = null;
         event.multiValueQueryStringParameters = null;
       } else if (event.httpMethod == 'POST') {
         if (typeof (event.body) == "string") {
           requestData = querystring.parse(event.body);
-          if (ENCRYPTION_ENABLED && requestData.data) {
-            requestData = decrypt(requestData.data);
+          encryptionState = requestData.enc_state == 1;
+          if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
+            requestData = requestData.data ? decrypt(requestData.data) : {};
           }
         } else {
           requestData = event.body;
-          if (ENCRYPTION_ENABLED && requestData.data) {
-            requestData = decrypt(requestData.data);
+          encryptionState = requestData.enc_state == 1;
+          if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
+            requestData = requestData.data ? decrypt(requestData.data) : {};
           }
         }
         event.body = null;
@@ -43,6 +47,7 @@ class ParameterProcessor extends baseAction {
 
       requestData = requestData ? requestData : {};
       Autoload.requestData = requestData;
+      Autoload.encryptionState = encryptionState;
 
       this.removeUndefinedParameters(params, {}, requestData);
 
@@ -59,7 +64,7 @@ class ParameterProcessor extends baseAction {
           return false;
         }
 
-        if (ENCRYPTION_ENABLED) {
+        if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
           accessToken = decrypt(accessToken);
         }
 

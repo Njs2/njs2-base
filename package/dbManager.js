@@ -280,7 +280,7 @@ dbManager.verifyAccessToken = async (accessToken) => {
     return false;
   }
 
-  if (AUTH_LEVEL == "MEDIUM") {
+  if (AUTH_LEVEL == "JWT_DB") {
     const verifedUser = await dbManager.find(AUTH_TABLE_NAME, { [ACCESS_TOKEN_KEY]: accessToken, [ACCESS_TOKEN_ID_KEY]: decodedVal[ACCESS_TOKEN_ID_KEY] });
     if (verifedUser.length > 0) {
       return verifedUser[0];

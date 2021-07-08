@@ -11,7 +11,7 @@ const Autoload = require('./autoload.class');
 const { encrypt } = require("./encryption");
 const ParameterProcessor = require('./parameterProcessor.class');
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
-const { ENCRYPTION_ENABLED } = JSON.parse(process.env.ENCRYPTION);
+const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
 
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class executor extends baseAction {
@@ -119,7 +119,7 @@ class executor extends baseAction {
 
   async executeAction(action) {
     this.responseData = await action.executeMethod(Autoload.requestData);
-    if (ENCRYPTION_ENABLED) {
+    if (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && Autoload.encryptionState)) {
       this.responseData = encrypt(this.responseData);
     }
     return true;

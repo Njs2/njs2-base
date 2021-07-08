@@ -16,14 +16,14 @@
   "SQL_DB_USER": "root",
   "SQL_DB_PASSWORD": "password",
   "AUTH": {
-    "AUTH_LEVEL": "LOW",
+    "AUTH_LEVEL": "JWT",
     "JWT_SECRET": "123",
     "ACCESS_TOKEN_ID_KEY": "user_id",
     "AUTH_TABLE_NAME": "user",
     "ACCESS_TOKEN_KEY": "access_token"
   },
   "ENCRYPTION": {
-    "ENCRYPTION_ENABLED": false,
+    "ENCRYPTION_MODE": "optional",
     "ENCRYPTION_KEY": "",
     "ENCRYPTION_IV": ""
   },
