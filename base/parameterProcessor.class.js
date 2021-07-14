@@ -3,6 +3,7 @@ const Autoload = require('./autoload.class');
 const dbManager = require("../package/dbManager").dbManager;
 const { decrypt } = require("./encryption");
 const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
+const multipart = require('aws-multipart-parser');
 
 class ParameterProcessor extends baseAction {
 
@@ -12,27 +13,38 @@ class ParameterProcessor extends baseAction {
     const params = initializer.getParameter();
     const isSecured = initializer.pkgInitializer.isSecured;
 
+    let fileExists = false;
+    Object.keys(params).map(key => {
+      if (params[key].type == 'file') fileExists = true;
+    });
+
     try {
+      console.log(event.body)
       //remove the request query/body parameters from request object
       if (event.httpMethod == 'GET') {
         requestData = event.queryStringParameters;
         encryptionState = requestData.enc_state == 1;
-        if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
+        if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
           requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
         }
         event.queryStringParameters = null;
         event.multiValueQueryStringParameters = null;
       } else if (event.httpMethod == 'POST') {
         if (typeof (event.body) == "string") {
-          requestData = querystring.parse(event.body);
+          if (fileExists) {
+            requestData = multipart.parse(event, true);
+          } else {
+            requestData = querystring.parse(event.body);
+          }
           encryptionState = requestData.enc_state == 1;
-          if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
-            requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
+          if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
+            const urlParams = new URLSearchParams(requestData);
+            requestData = requestData.data ? JSON.parse(decrypt(Object.fromEntries(urlParams).data)) : {};
           }
         } else {
           requestData = event.body;
           encryptionState = requestData.enc_state == 1;
-          if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && requestData.enc_state == 1))) {
+          if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
             requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
           }
         }

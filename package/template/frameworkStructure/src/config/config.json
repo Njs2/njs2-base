@@ -16,11 +16,13 @@
   "SQL_DB_USER": "root",
   "SQL_DB_PASSWORD": "password",
   "AUTH": {
-    "AUTH_LEVEL": "JWT",
+    "AUTH_MODE": "JWT_DB",
     "JWT_SECRET": "123",
-    "ACCESS_TOKEN_ID_KEY": "user_id",
-    "AUTH_TABLE_NAME": "user",
-    "ACCESS_TOKEN_KEY": "access_token"
+    "JWT_ID_KEY": "user_id",
+    "DB_TABLE_NAME": "user",
+    "DB_ID_KEY": "user_id",
+    "DB_ACCESS_KEY": "access_token",
+    "DB_REFRESH_KEY": ""
   },
   "ENCRYPTION": {
     "ENCRYPTION_MODE": "optional",
@@ -28,7 +30,7 @@
     "ENCRYPTION_IV": ""
   },
   "SALT_ROUNDS": 8,
-  "njs2-base": {
+  "@njs2/base": {
     "USE_LAMBDA_ROLE": true,
     "AWS_REGION": "",
     "AWS_ACCESS_KEY_ID": "",

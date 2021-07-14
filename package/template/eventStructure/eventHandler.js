@@ -1,7 +1,7 @@
 require('bytenode');
 module.exports.handler = async (event, user) => {
   try {
-    const { sockets: njsWebsocket } = require('njs2-base');
+    const { sockets: njsWebsocket } = require('@njs2/base');
     await njsWebsocket.emit(user.socket_id, { "event": 'pong' });
     return { statusCode: 200, body: {} };
   } catch (e) {

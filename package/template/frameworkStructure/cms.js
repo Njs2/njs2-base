@@ -1,4 +1,4 @@
-require('njs2-base/base/env');
+require('@njs2/base/base/env');
 const express = require('express');
 const reactApp = express();
 reactApp.use(express.static("cms/build"));
@@ -9,5 +9,3 @@ reactApp.get("/", (req, res) => {
 reactApp.listen(process.env.CMS_PORT, () => {
   console.log(`CMS server started on port ${process.env.CMS_PORT}`);
 });
-
-module.exports.init = init;

@@ -272,21 +272,26 @@ dbManager.verifyTbl = async (tableName, model) => {
   return dbResult;
 };
 
+/**
+ * 
+ * AUTH_MODE = JWT/JWT_DB/JWT_DB_REFRESH
+ * 
+ * */
 dbManager.verifyAccessToken = async (accessToken) => {
   const jwt = require("./jwt");
-  const {AUTH_LEVEL, JWT_SECRET, ACCESS_TOKEN_ID_KEY, AUTH_TABLE_NAME, ACCESS_TOKEN_KEY } = JSON.parse(process.env.AUTH);
+  const {AUTH_MODE, JWT_SECRET, JWT_ID_KEY, DB_ID_KEY, DB_TABLE_NAME, DB_ACCESS_KEY } = JSON.parse(process.env.AUTH);
   const decodedVal = await jwt.decodeJwtToken(accessToken, JWT_SECRET);
-  if (!decodedVal || !decodedVal[ACCESS_TOKEN_ID_KEY]) {
+  if (!decodedVal || !decodedVal[JWT_ID_KEY]) {
     return false;
   }
 
-  if (AUTH_LEVEL == "JWT_DB") {
-    const verifedUser = await dbManager.find(AUTH_TABLE_NAME, { [ACCESS_TOKEN_KEY]: accessToken, [ACCESS_TOKEN_ID_KEY]: decodedVal[ACCESS_TOKEN_ID_KEY] });
+  if (AUTH_MODE == "JWT_DB") {
+    const verifedUser = await dbManager.find(DB_TABLE_NAME, { [DB_ACCESS_KEY]: accessToken, [DB_ID_KEY]: decodedVal[JWT_ID_KEY] });
     if (verifedUser.length > 0) {
       return verifedUser[0];
     };
   } else {
-    return { [ACCESS_TOKEN_ID_KEY]: decodedVal[ACCESS_TOKEN_ID_KEY] };
+    return { [DB_ID_KEY]: decodedVal[JWT_ID_KEY] };
   }
 
   return false;

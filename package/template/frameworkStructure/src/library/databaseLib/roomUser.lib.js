@@ -1,4 +1,4 @@
-const dbManager = require("njs2-base/package/dbManager.js").dbManager;
+const dbManager = require("@njs2/base/package/dbManager.js").dbManager;
 
 let roomUserLib = [];
 roomUserLib.getroomUserDetails = async (roomUserId) => {
