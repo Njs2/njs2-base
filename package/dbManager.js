@@ -40,17 +40,18 @@ dbManager.insert = async (tableName, query) => {
 
   // Remove double qoutes from mysql query and replace single qoutes to double
   if (process.env.DATABASE_TYPE == "postgres") {
-    // DATABASE_TYPE == "postgres" ? sql += ' RETURNING * ' : '';
+    sql += ' RETURNING * ';
     sql = sql.replace(/'/g, '"');
-  } else if (process.env.DATABASE_TYPE == "mysql")
+  } else if (process.env.DATABASE_TYPE == "mysql") {
+    // sql += `; SELECT LAST_INSERT_ID();`
     sql = sql.replace(/"/g, '');
+  }
 
   let res = await conn.query(sql, {
-    replacements: replacements, raw: true
+    replacements: replacements, raw: false
   });
 
-  // console.log(res);
-  return { "postgres": res[1], "mysql": res[1] }[process.env.DATABASE_TYPE];
+  return { "postgres": res[0][0], "mysql": res[0] }[process.env.DATABASE_TYPE];
 };
 
 /**
@@ -113,6 +114,79 @@ dbManager.find = async (tableName, query, order = {}) => {
     sql += ` "${key}" ${value == 1 ? ' ASC ' : ' DESC '} ${i != keys.length - 1 ? ', ' : ''}`;
   }
 
+  // Remove double qoutes from mysql query and replace single qoutes to double
+  if (process.env.DATABASE_TYPE == "postgres")
+    sql = sql.replace(/'/g, '"');
+  else if (process.env.DATABASE_TYPE == "mysql")
+    sql = sql.replace(/"/g, '');
+
+  const res = await conn.query(sql, {
+    replacements: replacements, raw: true, nest: true
+  });
+  return res;
+};
+
+/**
+ * Database find one record
+ * @function findOne
+ * @param {string} tableName
+ * @param {Object} query
+ * @param {Object} order
+ * @returns {Promise<Object>}
+ */
+ dbManager.findOne = async (tableName, query, order = {}) => {
+  const conn = await getSQLConnection();
+  let sql = `SELECT * FROM ${{ "postgres": '"public".', "mysql": '' }[process.env.DATABASE_TYPE]}"${tableName}" WHERE `;
+  let keys = Object.keys(query);
+  let replacements = [];
+
+  for (let i = 0; i < keys.length; i++) {
+    let key = keys[i];
+    let value = query[key];
+    let eq = '=';
+
+    if (typeof value == 'object') {
+      const fieldVal = Object.keys(value)[0];
+      switch (fieldVal) {
+        case '$lt':
+          eq = '<';
+          value = value[fieldVal];
+          break;
+
+        case '$lte':
+          eq = '<=';
+          value = value[fieldVal];
+          break;
+
+        case '$gt':
+          eq = '>';
+          value = value[fieldVal];
+          break;
+
+        case '$gte':
+          eq = '>=';
+          value = value[fieldVal];
+          break;
+      }
+
+      if (typeof value == 'object')
+        value = JSON.stringify(value);
+    }
+
+    sql += ` "${key}" ${eq} ? ${i != keys.length - 1 ? ' AND ' : ''}`;
+    replacements.push(value);
+  }
+
+  keys = Object.keys(order);
+  for (let i = 0; i < keys.length; i++) {
+    if (i == 0) sql += " ORDER BY ";
+    let key = keys[i];
+    let value = order[key];
+
+    sql += ` "${key}" ${value == 1 ? ' ASC ' : ' DESC '} ${i != keys.length - 1 ? ', ' : ''}`;
+  }
+
+  sql += ` LIMIT 1`;
   // Remove double qoutes from mysql query and replace single qoutes to double
   if (process.env.DATABASE_TYPE == "postgres")
     sql = sql.replace(/'/g, '"');
