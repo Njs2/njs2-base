@@ -60,6 +60,7 @@ class ParameterProcessor extends baseAction {
       requestData = requestData ? requestData : {};
       Autoload.requestData = requestData;
       Autoload.encryptionState = encryptionState;
+      requestData.lng_key && requestData.lng_key.length > 0 && (Autoload.lng_key = requestData.lng_key);
 
       this.removeUndefinedParameters(params, {}, requestData);
 

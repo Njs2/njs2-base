@@ -8,6 +8,8 @@ class autoLoad {
     this.responseCode;
     this.responseMessage;
     this.requestData;
+    this.default_lng_key = "en";
+    this.lng_key;
   }
 
   static getStaticInstance() {
