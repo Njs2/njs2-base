@@ -23,6 +23,9 @@ class executor extends baseAction {
 
   async executeMethod(event) {
     try {
+      let { lng_key: lngKey } = event.headers;
+      if (lngKey) this.setMemberVariable('lng_key', lngKey);
+
       // If no error mssseage is overwritten, then returns default error
       this.setResponse('UNKNOWN_ERROR');
       let methodName = event.pathParameters;

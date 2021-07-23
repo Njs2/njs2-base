@@ -13,13 +13,18 @@ class ParameterProcessor extends baseAction {
     const params = initializer.getParameter();
     const isSecured = initializer.pkgInitializer.isSecured;
 
+    let { lng_key: lngKey } = event.headers;
+    if (lngKey) {
+      this.setMemberVariable('lng_key', lngKey);
+      action.setMemberVariable('lng_key', lngKey);
+    }
+
     let fileExists = false;
     Object.keys(params).map(key => {
       if (params[key].type == 'file') fileExists = true;
     });
 
     try {
-      console.log(event.body)
       //remove the request query/body parameters from request object
       if (event.httpMethod == 'GET') {
         requestData = event.queryStringParameters;
@@ -60,7 +65,6 @@ class ParameterProcessor extends baseAction {
       requestData = requestData ? requestData : {};
       Autoload.requestData = requestData;
       Autoload.encryptionState = encryptionState;
-      requestData.lng_key && requestData.lng_key.length > 0 && (Autoload.lng_key = requestData.lng_key);
 
       this.removeUndefinedParameters(params, {}, requestData);
 

@@ -1,8 +1,6 @@
 module.exports.getMongooseConnection = require("./package/dbConnect").getMongooseConnection;
 module.exports.getSQLConnection = require("./package/dbConnect").getSQLConnection;
 
-module.exports.RESPONSE = { getResponseList: require('./package/response').getResponseList }
-
 const pjson = require('./package.json');
 const { loadConfig } = require("./base/loadConfig");
 const {

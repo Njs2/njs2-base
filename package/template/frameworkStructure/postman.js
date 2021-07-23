@@ -1,3 +1,4 @@
+/* eslint-disable-next-line no-unused-vars */
 module.exports.execute = async event => {
   return {
     statusCode: 200,
