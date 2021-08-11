@@ -2,34 +2,55 @@ const querystring = require('querystring');
 const Autoload = require('./autoload.class');
 const dbManager = require("../package/dbManager").dbManager;
 const { decrypt } = require("./encryption");
-const { ENCRYPTION_ENABLED } = JSON.parse(process.env.ENCRYPTION);
+const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
+const multipart = require('aws-multipart-parser');
 
 class ParameterProcessor extends baseAction {
 
   async processParameter(initializer, event, action) {
     let requestData;
+    let encryptionState = true;
     const params = initializer.getParameter();
     const isSecured = initializer.pkgInitializer.isSecured;
+
+    let { lng_key: lngKey } = event.headers;
+    if (lngKey) {
+      this.setMemberVariable('lng_key', lngKey);
+      action.setMemberVariable('lng_key', lngKey);
+    }
+
+    let fileExists = false;
+    Object.keys(params).map(key => {
+      if (params[key].type == 'file') fileExists = true;
+    });
 
     try {
       //remove the request query/body parameters from request object
       if (event.httpMethod == 'GET') {
         requestData = event.queryStringParameters;
-        if (ENCRYPTION_ENABLED && requestData.data) {
-          requestData = decrypt(requestData.data);
+        encryptionState = requestData.enc_state == 1;
+        if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
+          requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
         }
         event.queryStringParameters = null;
         event.multiValueQueryStringParameters = null;
       } else if (event.httpMethod == 'POST') {
         if (typeof (event.body) == "string") {
-          requestData = querystring.parse(event.body);
-          if (ENCRYPTION_ENABLED && requestData.data) {
-            requestData = decrypt(requestData.data);
+          if (fileExists) {
+            requestData = multipart.parse(event, true);
+          } else {
+            requestData = querystring.parse(event.body);
+          }
+          encryptionState = requestData.enc_state == 1;
+          if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
+            const urlParams = new URLSearchParams(requestData);
+            requestData = requestData.data ? JSON.parse(decrypt(Object.fromEntries(urlParams).data)) : {};
           }
         } else {
           requestData = event.body;
-          if (ENCRYPTION_ENABLED && requestData.data) {
-            requestData = decrypt(requestData.data);
+          encryptionState = requestData.enc_state == 1;
+          if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
+            requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
           }
         }
         event.body = null;
@@ -43,6 +64,7 @@ class ParameterProcessor extends baseAction {
 
       requestData = requestData ? requestData : {};
       Autoload.requestData = requestData;
+      Autoload.encryptionState = encryptionState;
 
       this.removeUndefinedParameters(params, {}, requestData);
 
@@ -59,7 +81,7 @@ class ParameterProcessor extends baseAction {
           return false;
         }
 
-        if (ENCRYPTION_ENABLED) {
+        if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
           accessToken = decrypt(accessToken);
         }
 

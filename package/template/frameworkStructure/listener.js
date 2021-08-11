@@ -1,8 +1,9 @@
 require('bytenode');
-require("njs2-base/base/env");
-const Executor = require("njs2-base/base/executor.class");
-const { sockets: njsWebsocket } = require('njs2-base');
+require("@njs2/base/base/env");
+const Executor = require("@njs2/base/base/executor.class");
+const { sockets: njsWebsocket } = require('@njs2/base');
 
+/* eslint-disable-next-line no-unused-vars */
 module.exports.connectHandler = async (event) => {
   try {
     return { code: 200, body: {} };
@@ -12,7 +13,7 @@ module.exports.connectHandler = async (event) => {
   return { statusCode: 500, body: 'Failed to connect' };
 }
 
-
+/* eslint-disable-next-line no-unused-vars */
 module.exports.disconnectHandler = async (event) => {
   try {
     return { code: 200, body: {} };
