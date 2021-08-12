@@ -1,11 +1,10 @@
-module.exports.getMongooseConnection = require("./package/dbConnect").getMongooseConnection;
 module.exports.getSQLConnection = require("./package/dbConnect").getSQLConnection;
 
 const pjson = require('./package.json');
 const { loadConfig } = require("./base/loadConfig");
 const {
-  SOCKET_SYSTEM: SOCKET_SYSTEM_TYPE
-} = loadConfig(["SOCKET_SYSTEM"], pjson.name);
+  SOCKET_SYSTEM_TYPE
+} = loadConfig(["SOCKET_SYSTEM_TYPE"], pjson.name);
 const SOCKET_SYSTEM = {
   "API_GATEWAY": {
     emit: require('./websockets/API_GATEWAY/index').emit,

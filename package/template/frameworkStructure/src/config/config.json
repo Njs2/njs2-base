@@ -5,7 +5,7 @@
   "PROJECT_VERSION": "0.0.1",
   "API_ENDPOINT": "http://localhost:3000",
   "API_PORT": 3000,
-  "SOCKET_SYSTEM": "EXPRESS",
+  "SOCKET_SYSTEM_TYPE": "EXPRESS",
   "SOCKET_PORT": 3001,
   "WSS_BASE_URL": "http://localhost:3001",
   "CMS_PORT": 3003,
