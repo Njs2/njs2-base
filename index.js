@@ -21,3 +21,4 @@ const SOCKET_SYSTEM = {
 };
 
 module.exports.sockets = SOCKET_SYSTEM[SOCKET_SYSTEM_TYPE];
+module.exports.Executor = require('./base/executor.class');

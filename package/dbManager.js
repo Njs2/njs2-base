@@ -95,6 +95,11 @@ dbManager.find = async (tableName, query, order = {}) => {
           eq = '>=';
           value = value[fieldVal];
           break;
+
+        case '$in':
+          eq = 'IN';
+          value = `(${value[fieldVal].join(',')})`;
+          break;
       }
 
       if (typeof value == 'object')
@@ -134,7 +139,7 @@ dbManager.find = async (tableName, query, order = {}) => {
  * @param {Object} order
  * @returns {Promise<Object>}
  */
- dbManager.findOne = async (tableName, query, order = {}) => {
+dbManager.findOne = async (tableName, query, order = {}) => {
   const conn = await getSQLConnection();
   let sql = `SELECT * FROM ${{ "postgres": '"public".', "mysql": '' }[process.env.DATABASE_TYPE]}"${tableName}" WHERE `;
   let keys = Object.keys(query);
@@ -166,6 +171,11 @@ dbManager.find = async (tableName, query, order = {}) => {
         case '$gte':
           eq = '>=';
           value = value[fieldVal];
+          break;
+
+        case '$in':
+          eq = 'IN';
+          value = `(${value[fieldVal].join(',')})`;
           break;
       }
 
@@ -353,7 +363,7 @@ dbManager.verifyTbl = async (tableName, model) => {
  * */
 dbManager.verifyAccessToken = async (accessToken) => {
   const jwt = require("./jwt");
-  const {AUTH_MODE, JWT_SECRET, JWT_ID_KEY, DB_ID_KEY, DB_TABLE_NAME, DB_ACCESS_KEY } = JSON.parse(process.env.AUTH);
+  const { AUTH_MODE, JWT_SECRET, JWT_ID_KEY, DB_ID_KEY, DB_TABLE_NAME, DB_ACCESS_KEY } = JSON.parse(process.env.AUTH);
   const decodedVal = await jwt.decodeJwtToken(accessToken, JWT_SECRET);
   if (!decodedVal || !decodedVal[JWT_ID_KEY]) {
     return false;
