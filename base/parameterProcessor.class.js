@@ -5,7 +5,7 @@ const multipart = require('aws-multipart-parser');
 
 class ParameterProcessor extends baseAction {
 
-  async processParameter(initializer, event, action) {
+  async processParameter(initializer, request, action) {
     let requestData;
     let encryptionState = true;
     const params = initializer.getParameter();
@@ -17,20 +17,20 @@ class ParameterProcessor extends baseAction {
 
     try {
       //remove the request query/body parameters from request object
-      if (event.httpMethod == 'GET') {
-        requestData = event.queryStringParameters;
+      if (request.httpMethod == 'GET') {
+        requestData = request.queryStringParameters;
         encryptionState = requestData.enc_state == 1;
         if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
           requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
         }
-        event.queryStringParameters = null;
-        event.multiValueQueryStringParameters = null;
-      } else if (event.httpMethod == 'POST') {
-        if (typeof (event.body) == "string") {
+        request.queryStringParameters = null;
+        request.multiValueQueryStringParameters = null;
+      } else if (request.httpMethod == 'POST') {
+        if (typeof (request.body) == "string") {
           if (fileExists) {
-            requestData = multipart.parse(event, true);
+            requestData = multipart.parse(request, true);
           } else {
-            requestData = querystring.parse(event.body);
+            requestData = querystring.parse(request.body);
           }
           encryptionState = requestData.enc_state == 1;
           if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
@@ -38,18 +38,18 @@ class ParameterProcessor extends baseAction {
             requestData = requestData.data ? JSON.parse(decrypt(Object.fromEntries(urlParams).data)) : {};
           }
         } else {
-          requestData = event.body;
+          requestData = request.body;
           encryptionState = requestData.enc_state == 1;
           if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
             requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
           }
         }
-        event.body = null;
+        request.body = null;
       }
 
-      if (event.pathParameters) {
-        Object.keys(event.pathParameters).map(key => {
-          requestData ? requestData[key] = event.pathParameters[key] : requestData = { [key]: event.pathParameters[key] };
+      if (request.pathParameters) {
+        Object.keys(request.pathParameters).map(key => {
+          requestData ? requestData[key] = request.pathParameters[key] : requestData = { [key]: request.pathParameters[key] };
         });
       }
 

@@ -22,15 +22,15 @@ class executor extends baseAction {
     this.responseData = {};
   }
 
-  async executeMethod(event) {
+  async executeMethod(request) {
     try {
-      let { lng_key: lngKey, access_token: accessToken, enc_state } = event.headers;
+      let { lng_key: lngKey, access_token: accessToken, enc_state } = request.headers;
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
       this.setMemberVariable('encryptionState', (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && enc_state == 1)));
 
       // If no error mssseage is overwritten, then returns default error
       this.setResponse('UNKNOWN_ERROR');
-      let methodName = this.getMethodName(event.pathParameters);
+      let methodName = this.getMethodName(request.pathParameters);
       console.log("API invoked--> ", methodName);
 
       let pathName = this.getMethodPath(methodName);
@@ -38,10 +38,10 @@ class executor extends baseAction {
 
       const { customMethodName, pathParameters } = this.getCustomRoute(methodName);
       if (customMethodName) {
-        event.pathParameters = pathParameters;
+        request.pathParameters = pathParameters;
         methodName = customMethodName;
       } else {
-        event.pathParameters = null;
+        request.pathParameters = null;
       }
 
       if (!this.methodExists(pathName)) {
@@ -57,7 +57,7 @@ class executor extends baseAction {
       this.responseData = {};
 
       // Validate request method with initializer
-      if (!this.isValidRequestMethod(event.httpMethod, initializer.pkgInitializer.requestMethod)) {
+      if (!this.isValidRequestMethod(request.httpMethod, initializer.pkgInitializer.requestMethod)) {
         return false;
       }
 
@@ -78,7 +78,7 @@ class executor extends baseAction {
         executeAction.setMemberVariable('lng_key', lngKey);
       }
 
-      if (!await parameterProcessor.processParameter(initializer, event, executeAction))
+      if (!await parameterProcessor.processParameter(initializer, request, executeAction))
         return false;
 
       if (!(await this.executeAction(executeAction))) {
