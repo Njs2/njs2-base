@@ -22,11 +22,12 @@ class executor extends baseAction {
     this.responseData = {};
   }
 
-  async executeMethod(request) {
+  async processRequest(request) {
     try {
       let { lng_key: lngKey, access_token: accessToken, enc_state } = request.headers;
+      let encryptionState = (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && enc_state == 1));
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
-      this.setMemberVariable('encryptionState', (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && enc_state == 1)));
+      this.setMemberVariable('encryptionState', encryptionState);
 
       // If no error mssseage is overwritten, then returns default error
       this.setResponse('UNKNOWN_ERROR');
@@ -67,8 +68,8 @@ class executor extends baseAction {
         if (!accessTokenValidation)
           return false;
 
-        action.setMemberVariable('accessToken', accessTokenValidation.accessToken);
-        action.setMemberVariable('userObj', accessTokenValidation.validatedUser);
+        executeAction.setMemberVariable('accessToken', accessTokenValidation.accessToken);
+        executeAction.setMemberVariable('userObj', accessTokenValidation.validatedUser);
       }
 
       // Initaialize the initializer and process parameters
