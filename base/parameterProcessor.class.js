@@ -59,10 +59,7 @@ class ParameterProcessor extends baseAction {
 
       this.trimRequestParameterValues(requestData);
 
-      if (!this.validateParameters(params, requestData, action)) {
-        return false;
-      }
-      return true;
+      return this.validateParameters(params, requestData, action);
     } catch (e) {
       console.log(e)
     }
@@ -102,29 +99,32 @@ class ParameterProcessor extends baseAction {
 
   validateParameters(param, requestData, action) {
     let errorParameterName, result = true;
+    let responseObj = { error: null, data: {}};
+    let requestData = [];
     for (let paramName in param) {
+      let responseObjData = {};
+      let paramsName = param[`${paramName}`].name
       let isSuccessfull = this.verifyRequiredParameter(paramName, param, requestData);
       if (!isSuccessfull) {
-        //the required parameter is not passed or has an empty value in the request
-        result = false;
         errorParameterName = param[`${paramName}`].name;
         break;
       }
 
       if (!this.convertToGivenParameterType(paramName, param, requestData)) {
-        return false;
+        responseObj.error = {errorCode : "INVALID_INPUT_TYPE",parameterName : param[`${paramName}`].name};
+        return responseObj;
       }
-      this.setDefaultParameters(paramName, param, requestData);
-      this.setVariableValues(paramName, param, requestData, action);
+     this.setDefaultParameters(paramName, param, requestData);
+     //this.setVariableValues(paramName, param, requestData, action);
+     //responseObj.data[param[`${paramName}`].name] = requestData;
+     responseObjData[paramsName] = requestData;
     }
-
+    responseObj.data = responseObjData;
     if (errorParameterName) {
-      let options = [];
-      options.paramName = errorParameterName;
-      this.setResponse("PARAMETER_IS_MANDATORY", options);
-      return false;
+      responseObj.error = {errorCode : "PARAMETER_IS_MANDATORY",parameterName : errorParameterName};
+      return responseObj;
     }
-    return true;
+    return responseObj;
   }
 
   setVariableValues(paramName, paramData, requestData, action) {
@@ -144,7 +144,6 @@ class ParameterProcessor extends baseAction {
           //set error response if a parameter is specified in request but is not an integer
           let options = [];
           options.paramName = requestParamName;
-          this.setResponse("INVALID_INPUT_INTEGER", options);
           return false;
         }
 
@@ -155,7 +154,6 @@ class ParameterProcessor extends baseAction {
       //set error response if a parameter is specified in request but is empty
       let options = [];
       options.paramName = requestParamName;
-      this.setResponse("INVALID_INPUT_EMPTY", options);
       return false;
     }
     return true;

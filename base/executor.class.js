@@ -13,6 +13,7 @@ const ParameterProcessor = require('./parameterProcessor.class');
 const dbManager = require("../package/dbManager").dbManager;
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
 const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
+const ENC_MODE = require('../lib/constants')
 
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class executor extends baseAction {
@@ -22,78 +23,85 @@ class executor extends baseAction {
     this.responseData = {};
   }
 
-  async processRequest(request) {
+  async executeRequest(request) {
     try {
-      let { lng_key: lngKey, access_token: accessToken, enc_state } = request.headers;
-      let encryptionState = (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && enc_state == 1));
+      const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
+      const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_MODE.ENABLED));
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
       this.setMemberVariable('encryptionState', encryptionState);
 
       // If no error mssseage is overwritten, then returns default error
-      this.setResponse('UNKNOWN_ERROR');
+      this.setResponse('UNKNOWN_ERROR'); // constant?
       let methodName = this.getMethodName(request.pathParameters);
       console.log("API invoked--> ", methodName);
 
-      let pathName = this.getMethodPath(methodName);
-      console.log("Looking for folder --> ", pathName);
-
+      request.pathParameters = null; 
       const { customMethodName, pathParameters } = this.getCustomRoute(methodName);
       if (customMethodName) {
         request.pathParameters = pathParameters;
         methodName = customMethodName;
-      } else {
-        request.pathParameters = null;
       }
+
+      let pathName = this.getMethodPath(methodName);
+      console.log("Looking for folder --> ", pathName);
 
       if (!this.methodExists(pathName)) {
         this.setResponse('METHOD_NOT_FOUND');
         return false;
       }
 
-      const { action, init } = requireDir(pathName);
+      const { action: ActionClass, init: InitClass } = requireDir(pathName);
 
-      const initializer = new init();
-      const executeAction = new action();
+      const initInstance = new InitClass();
+      const actionInstance = new ActionClass();
 
       this.responseData = {};
 
       // Validate request method with initializer
-      if (!this.isValidRequestMethod(request.httpMethod, initializer.pkgInitializer.requestMethod)) {
+      if (!this.isValidRequestMethod(request.httpMethod, initInstance.pkgInitializer.requestMethod)) {
+        this.setResponse('INVALID_REQUEST_METHOD');
         return false;
       }
 
-      // If Secured endpoint Validate access token
-      if (initializer.pkgInitializer.isSecured) {
-        const accessTokenValidation = await this.validateAccesstoken(accessToken);
-        if (!accessTokenValidation)
+      // if secured endpoint validate access token
+      if (initInstance.pkgInitializer.isSecured) {
+        const validatedUser = await this.validateAccesstoken(accessToken);
+        if (!validatedUser) {
+          this.setResponse("INVALID_ACCESS_TOKEN");
           return false;
-
-        executeAction.setMemberVariable('accessToken', accessTokenValidation.accessToken);
-        executeAction.setMemberVariable('userObj', accessTokenValidation.validatedUser);
+        }
+        actionInstance.setMemberVariable('userObj', validatedUser);
       }
 
-      // Initaialize the initializer and process parameters
+      // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
-      if (lngKey) {
-        parameterProcessor.setMemberVariable('lng_key', lngKey);
-        executeAction.setMemberVariable('lng_key', lngKey);
+      // if (lngKey) {
+      //   parameterProcessor.setMemberVariable('lng_key', lngKey);
+      //   actionInstance.setMemberVariable('lng_key', lngKey);
+      // }
+
+      const parameterObject = await parameterProcessor.processParameter(initInstance, request);
+      if(parameterObject.error){
+        this.setResponse(parameterObject.error.errorCode);
+      }else{
+        parameterObject.data.map(paramsData =>{
+          actionInstance.setMemberVariable(paramsData.paramsName,paramsData.requestData);
+        })
       }
-
-      if (!await parameterProcessor.processParameter(initializer, request, executeAction))
-        return false;
-
-      if (!(await this.executeAction(executeAction))) {
-        this.responseData = {};
-        return false;
+      this.responseData = await actionInstance.executeMethod();
+      if (encryptionState) {
+        this.responseData = encrypt(JSON.stringify(this.responseData));
       }
-
       return true;
+
     } catch (e) {
       if (process.env.MODE == "DEV") this.setDebugMessage(e.message);
       console.log("Exception caught", e);
       return false;
     }
   }
+
+  /** HELPER METHODS */
 
   getMethodName(pathParameters) {
     return pathParameters ? pathParameters.proxy : pathParameters;
@@ -141,11 +149,12 @@ class executor extends baseAction {
     return {};
   }
 
+  // TODO: In future we will move this to an Authorization class
   validateAccesstoken = async (accessToken) => {
     if (!accessToken || typeof accessToken != "string" || accessToken.trim() == "") {
-      let options = [];
-      options.paramName = 'access_token';
-      this.setResponse("INVALID_INPUT_EMPTY", options);
+      // let options = [];
+      // options.paramName = 'access_token';
+      // this.setResponse("INVALID_INPUT_EMPTY", options);
       return false;
     }
 
@@ -154,7 +163,7 @@ class executor extends baseAction {
 
     const validatedUser = await dbManager.verifyAccessToken(accessToken);
     if (!validatedUser) {
-      this.setResponse("INVALID_ACCESS_TOKEN");
+      // this.setResponse("INVALID_ACCESS_TOKEN");
       return false;
     }
 
@@ -163,14 +172,6 @@ class executor extends baseAction {
 
   capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-
-  async executeAction(action) {
-    this.responseData = await action.executeMethod();
-    if (this.encryptionState) {
-      this.responseData = encrypt(JSON.stringify(this.responseData));
-    }
-    return true;
   }
 
   getResponse() {
@@ -184,7 +185,6 @@ class executor extends baseAction {
 
   isValidRequestMethod(httpMethod, requestMethod) {
     if (httpMethod.toUpperCase() !== requestMethod.toUpperCase()) {
-      this.setResponse('INVALID_REQUEST_METHOD');
       return false;
     }
     return true;
