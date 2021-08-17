@@ -85,7 +85,7 @@ class executor extends baseAction {
       //   actionInstance.setMemberVariable('lng_key', lngKey);
       // }
 
-      const parameterObject = await parameterProcessor.processParameter(initInstance, request);
+      const parameterObject = await parameterProcessor.processParameter(initInstance, request,encState);
       if(parameterObject.error){
         this.setResponse(parameterObject.error.errorCode, );
       }else{

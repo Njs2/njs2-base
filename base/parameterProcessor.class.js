@@ -2,10 +2,11 @@ const querystring = require('querystring');
 const { decrypt } = require("./encryption");
 const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
 const multipart = require('aws-multipart-parser');
+const ENC_MODE = require('../lib/constants')
 
 class ParameterProcessor extends baseAction {
 
-  async processParameter(initializer, request, action) {
+  async processParameter(initializer, request, action,encState) {
     let requestData;
     let encryptionState = true;
     const params = initializer.getParameter();
@@ -19,8 +20,8 @@ class ParameterProcessor extends baseAction {
       //remove the request query/body parameters from request object
       if (request.httpMethod == 'GET') {
         requestData = request.queryStringParameters;
-        encryptionState = requestData.enc_state == 1;
-        if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
+        encryptionState = encState == 1;
+        if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
           requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
         }
         request.queryStringParameters = null;
@@ -32,15 +33,15 @@ class ParameterProcessor extends baseAction {
           } else {
             requestData = querystring.parse(request.body);
           }
-          encryptionState = requestData.enc_state == 1;
-          if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
+          encryptionState = encState == 1;
+          if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
             const urlParams = new URLSearchParams(requestData);
             requestData = requestData.data ? JSON.parse(decrypt(Object.fromEntries(urlParams).data)) : {};
           }
         } else {
           requestData = request.body;
-          encryptionState = requestData.enc_state == 1;
-          if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
+          encryptionState = encState == 1;
+          if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
             requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
           }
         }
