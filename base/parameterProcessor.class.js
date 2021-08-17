@@ -99,10 +99,9 @@ class ParameterProcessor extends baseAction {
 
   validateParameters(param, requestData, action) {
     let errorParameterName, result = true;
-    let responseObj = { error: null, data: {}};
-    let requestData = [];
+    let responseObj = { error: null, data: {} };
+    let responseObjData = {};
     for (let paramName in param) {
-      let responseObjData = {};
       let paramsName = param[`${paramName}`].name
       let isSuccessfull = this.verifyRequiredParameter(paramName, param, requestData);
       if (!isSuccessfull) {
@@ -111,17 +110,15 @@ class ParameterProcessor extends baseAction {
       }
 
       if (!this.convertToGivenParameterType(paramName, param, requestData)) {
-        responseObj.error = {errorCode : "INVALID_INPUT_TYPE",parameterName : param[`${paramName}`].name};
+        responseObj.error = { errorCode: "INVALID_INPUT_TYPE", parameterName: param[`${paramName}`].name };
         return responseObj;
       }
-     this.setDefaultParameters(paramName, param, requestData);
-     //this.setVariableValues(paramName, param, requestData, action);
-     //responseObj.data[param[`${paramName}`].name] = requestData;
-     responseObjData[paramsName] = requestData;
+      this.setDefaultParameters(paramName, param, requestData);
+      responseObjData[paramsName] = requestData;
     }
     responseObj.data = responseObjData;
     if (errorParameterName) {
-      responseObj.error = {errorCode : "PARAMETER_IS_MANDATORY",parameterName : errorParameterName};
+      responseObj.error = { errorCode: "PARAMETER_IS_MANDATORY", parameterName: errorParameterName };
       return responseObj;
     }
     return responseObj;

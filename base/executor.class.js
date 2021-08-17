@@ -4,6 +4,7 @@ baseAction = require("./baseAction.class");
 basePkg = require("./basePackage.class");
 glbvalue = require(path.join(process.cwd(), "src/global/index.js"));
 
+
 require("./env");
 
 const requireDir = require('require-dir');
@@ -14,6 +15,8 @@ const dbManager = require("../package/dbManager").dbManager;
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
 const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
 const ENC_MODE = require('../lib/constants')
+const jwt = require('../package/jwt');
+
 
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class executor extends baseAction {
@@ -66,11 +69,13 @@ class executor extends baseAction {
       // if secured endpoint validate access token
       if (initInstance.pkgInitializer.isSecured) {
         const validatedUser = await this.validateAccesstoken(accessToken);
-        if (!validatedUser) {
-          this.setResponse("INVALID_ACCESS_TOKEN");
+        if (validatedUser.error) {
+          this.setResponse(validatedUser.error.errorCode);
           return false;
+        }else{
+          actionInstance.setMemberVariable('userObj', validatedUser.data);
         }
-        actionInstance.setMemberVariable('userObj', validatedUser);
+        
       }
 
       // validate & process request parameters
@@ -82,11 +87,13 @@ class executor extends baseAction {
 
       const parameterObject = await parameterProcessor.processParameter(initInstance, request);
       if(parameterObject.error){
-        this.setResponse(parameterObject.error.errorCode);
+        this.setResponse(parameterObject.error.errorCode, );
       }else{
-        parameterObject.data.map(paramsData =>{
+        console.log({parameterObject});
+        parameterObject.data ? Object.keys(parameterObject.data).map(paramsKey =>{
+          let paramsData = parameterObject.data[paramsKey];
           actionInstance.setMemberVariable(paramsData.paramsName,paramsData.requestData);
-        })
+        }) : false;
       }
       this.responseData = await actionInstance.executeMethod();
       if (encryptionState) {
@@ -151,23 +158,38 @@ class executor extends baseAction {
 
   // TODO: In future we will move this to an Authorization class
   validateAccesstoken = async (accessToken) => {
+    let validationResponse = { error: null, data: {}};
     if (!accessToken || typeof accessToken != "string" || accessToken.trim() == "") {
       // let options = [];
       // options.paramName = 'access_token';
       // this.setResponse("INVALID_INPUT_EMPTY", options);
-      return false;
+      validationResponse.error = {errorCode : "INVALID_INPUT_EMPTY",parameterName : 'access_token'};
+      return validationResponse;
     }
 
     if (this.encryptionState)
       accessToken = decrypt(accessToken);
+    
+    const { AUTH_MODE, JWT_SECRET, JWT_ID_KEY, DB_ID_KEY, DB_TABLE_NAME, DB_ACCESS_KEY } = JSON.parse(process.env.AUTH);
+    const decodedVal = await jwt.decodeJwtToken(accessToken, JWT_SECRET);
 
-    const validatedUser = await dbManager.verifyAccessToken(accessToken);
-    if (!validatedUser) {
-      // this.setResponse("INVALID_ACCESS_TOKEN");
-      return false;
+    if (!decodedVal || !decodedVal[JWT_ID_KEY]) {
+      validationResponse.error = {errorCode : "INVALID_INPUT_EMPTY",parameterName : 'access_token'};
+      return validationResponse;
     }
-
-    return { accessToken, validatedUser };
+  
+    if (AUTH_MODE == "JWT_DB") {
+      const verifedUser = await dbManager.find(DB_TABLE_NAME, { [DB_ACCESS_KEY]: accessToken, [DB_ID_KEY]: decodedVal[JWT_ID_KEY] });
+      if (verifedUser.length > 0) {
+        //return verifedUser[0];
+        validationResponse.data = verifedUser[0];
+        return validationResponse;
+      };
+    } else {
+      validationResponse.data = { [DB_ID_KEY]: decodedVal[JWT_ID_KEY] };
+      return validationResponse;
+    }
+  
   }
 
   capitalizeFirstLetter(string) {

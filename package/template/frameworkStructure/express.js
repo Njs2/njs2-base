@@ -41,7 +41,7 @@ app.all("*", async (req, res) => {
   }
 
   const executor = new Executor();
-  await executor.processRequest(executorReq);
+  await executor.executeRequest(executorReq);
   return res.send(executor.getResponse());
 });
 
