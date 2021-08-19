@@ -57,6 +57,9 @@ class executor extends baseAction {
 
       const initInstance = new InitClass();
       const actionInstance = new ActionClass();
+      if (lngKey) {
+        actionInstance.setMemberVariable('lng_key', lngKey);
+      }
 
       this.responseData = {};
 
@@ -70,7 +73,9 @@ class executor extends baseAction {
       if (initInstance.pkgInitializer.isSecured) {
         const validatedUser = await this.validateAccesstoken(accessToken);
         if (validatedUser.error) {
-          this.setResponse(validatedUser.error.errorCode);
+          let options = [];
+          options.paramName = validatedUser.error.parameterName;
+          this.setResponse(validatedUser.error.errorCode,options);
           return false;
         }else{
           actionInstance.setMemberVariable('userObj', validatedUser.data);
@@ -80,14 +85,12 @@ class executor extends baseAction {
 
       // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
-      // if (lngKey) {
-      //   parameterProcessor.setMemberVariable('lng_key', lngKey);
-      //   actionInstance.setMemberVariable('lng_key', lngKey);
-      // }
 
       const parameterObject = await parameterProcessor.processParameter(initInstance, request,encState);
       if(parameterObject.error){
-        this.setResponse(parameterObject.error.errorCode, );
+        let options = [];
+        options.paramName = parameterObject.error.parameterName;
+        this.setResponse(parameterObject.error.errorCode,options);
       }else{
         console.log({parameterObject});
         parameterObject.data ? Object.keys(parameterObject.data).map(paramsKey =>{
