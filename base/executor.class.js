@@ -28,15 +28,15 @@ class executor extends baseAction {
 
   async executeRequest(request) {
     try {
+      // Initializng basic variables
+      this.setResponse('UNKNOWN_ERROR');
       const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
       const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_MODE.ENABLED));
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
       this.setMemberVariable('encryptionState', encryptionState);
 
-      // If no error mssseage is overwritten, then returns default error
-      this.setResponse('UNKNOWN_ERROR'); // constant?
+      // Finalize methodName including custom route
       let methodName = this.getMethodName(request.pathParameters);
-      console.log("API invoked--> ", methodName);
 
       request.pathParameters = null; 
       const { customMethodName, pathParameters } = this.getCustomRoute(methodName);
@@ -45,23 +45,20 @@ class executor extends baseAction {
         methodName = customMethodName;
       }
 
+      // Resolve path from methodName
       let pathName = this.getMethodPath(methodName);
-      console.log("Looking for folder --> ", pathName);
-
       if (!this.methodExists(pathName)) {
         this.setResponse('METHOD_NOT_FOUND');
         return false;
       }
 
+      // Include required files and initiate instances
       const { action: ActionClass, init: InitClass } = requireDir(pathName);
-
       const initInstance = new InitClass();
       const actionInstance = new ActionClass();
       if (lngKey) {
         actionInstance.setMemberVariable('lng_key', lngKey);
       }
-
-      this.responseData = {};
 
       // Validate request method with initializer
       if (!this.isValidRequestMethod(request.httpMethod, initInstance.pkgInitializer.requestMethod)) {
@@ -71,33 +68,33 @@ class executor extends baseAction {
 
       // if secured endpoint validate access token
       if (initInstance.pkgInitializer.isSecured) {
-        const validatedUser = await this.validateAccesstoken(accessToken);
-        if (validatedUser.error) {
+        const { error, data } = await this.validateAccesstoken(accessToken);
+        if (error) {
           let options = [];
-          options.paramName = validatedUser.error.parameterName;
-          this.setResponse(validatedUser.error.errorCode,options);
+          options.paramName = error.parameterName;
+          this.setResponse(error.errorCode, options);
           return false;
-        }else{
-          actionInstance.setMemberVariable('userObj', validatedUser.data);
         }
-        
+        actionInstance.setMemberVariable('userObj', data);
       }
 
       // validate & process request parameters
+      // TODO: refactor below block to CLEANSING and VALIDATEPARAMS as seperate blocks
       const parameterProcessor = new ParameterProcessor();
 
-      const parameterObject = await parameterProcessor.processParameter(initInstance, request,encState);
+      const parameterObject = await parameterProcessor.processParameter(initInstance, request, encState);
       if(parameterObject.error){
         let options = [];
         options.paramName = parameterObject.error.parameterName;
         this.setResponse(parameterObject.error.errorCode,options);
       }else{
-        console.log({parameterObject});
         parameterObject.data ? Object.keys(parameterObject.data).map(paramsKey =>{
           let paramsData = parameterObject.data[paramsKey];
           actionInstance.setMemberVariable(paramsData.paramsName,paramsData.requestData);
         }) : false;
       }
+
+      // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
       if (encryptionState) {
         this.responseData = encrypt(JSON.stringify(this.responseData));
