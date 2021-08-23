@@ -96,10 +96,17 @@ class executor extends baseAction {
 
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
-      if (encryptionState) {
-        this.responseData = encrypt(JSON.stringify(this.responseData));
-      }
-      return true;
+      const { responseCode } = actionInstance.getResponseCode();
+      // if (encryptionState) {
+      //   this.responseData = encrypt(JSON.stringify(this.responseData));
+      // }
+      const responseMessage = this.getResponseMessage(responseCode)
+
+      return {
+        responseCode, 
+        responseMessage,
+        responseData
+      };
 
     } catch (e) {
       if (process.env.MODE == "DEV") this.setDebugMessage(e.message);
