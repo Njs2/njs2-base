@@ -19,7 +19,7 @@ const jwt = require('../package/jwt');
 
 
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
-class executor extends baseAction {
+class executor {
 
   constructor() {
     super();
@@ -82,19 +82,20 @@ class executor extends baseAction {
 
       // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
-      const requestData = await parameterProcessor.processParameter(initInstance, request, encState);
-
       const params = initInstance.getParameter();
       for (let paramName in params) {
+        //TODO: refactor .processParameter to handle 1 field at a time. Exit early!
+        const requestData = await parameterProcessor.processParameter(initInstance, request, encState);
         let param = params[paramName];
-        const { error, data } = parameterProcessor.validateParameters(param, requestData[param.name]);
+        //TODO: change data to value
+        const { error, value } = parameterProcessor.validateParameters(param, requestData[param.name]);
         if (error) {
-          let options = [];
-          options.paramName = error.parameterName;
-          this.setResponse(error.errorCode, options);
+          this.setResponse(error.errorCode, {
+            paramName: error.paramName
+          });
           throw new Error();
         }
-        actionInstance.setMemberVariable(paramName, data);
+        actionInstance.setMemberVariable(paramName, value);
       }
 
       // Initiate and Execute method

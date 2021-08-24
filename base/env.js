@@ -1,4 +1,4 @@
-const fs = require('fs');
+//TODO: Revisit
 const path = require("path");
 
 const envConfig = require(path.join(process.cwd(), `/src/config/config.json`));
