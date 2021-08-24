@@ -6,7 +6,7 @@ const ENC_MODE = require('../lib/constants')
 
 class ParameterProcessor extends baseAction {
 
-  async processParameter(initializer, request, action,encState) {
+  async processParameter(initializer, request, encState) {
     let requestData;
     let encryptionState = true;
     const params = initializer.getParameter();
@@ -16,54 +16,50 @@ class ParameterProcessor extends baseAction {
       if (params[key].type == 'file') fileExists = true;
     });
 
-    try {
-      //remove the request query/body parameters from request object
-      if (request.httpMethod == 'GET') {
-        requestData = request.queryStringParameters;
+    //remove the request query/body parameters from request object
+    if (request.httpMethod == 'GET') {
+      requestData = request.queryStringParameters;
+      encryptionState = encState == 1;
+      if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
+        requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
+      }
+      request.queryStringParameters = null;
+      request.multiValueQueryStringParameters = null;
+    } else if (request.httpMethod == 'POST') {
+      if (typeof (request.body) == "string") {
+        if (fileExists) {
+          requestData = multipart.parse(request, true);
+        } else {
+          requestData = querystring.parse(request.body);
+        }
+        encryptionState = encState == 1;
+        if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
+          const urlParams = new URLSearchParams(requestData);
+          requestData = requestData.data ? JSON.parse(decrypt(Object.fromEntries(urlParams).data)) : {};
+        }
+      } else {
+        requestData = request.body;
         encryptionState = encState == 1;
         if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
           requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
         }
-        request.queryStringParameters = null;
-        request.multiValueQueryStringParameters = null;
-      } else if (request.httpMethod == 'POST') {
-        if (typeof (request.body) == "string") {
-          if (fileExists) {
-            requestData = multipart.parse(request, true);
-          } else {
-            requestData = querystring.parse(request.body);
-          }
-          encryptionState = encState == 1;
-          if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
-            const urlParams = new URLSearchParams(requestData);
-            requestData = requestData.data ? JSON.parse(decrypt(Object.fromEntries(urlParams).data)) : {};
-          }
-        } else {
-          requestData = request.body;
-          encryptionState = encState == 1;
-          if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
-            requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
-          }
-        }
-        request.body = null;
       }
-
-      if (request.pathParameters) {
-        Object.keys(request.pathParameters).map(key => {
-          requestData ? requestData[key] = request.pathParameters[key] : requestData = { [key]: request.pathParameters[key] };
-        });
-      }
-
-      requestData = requestData ? requestData : {};
-
-      this.removeUndefinedParameters(params, {}, requestData);
-
-      this.trimRequestParameterValues(requestData);
-
-      return this.validateParameters(params, requestData, action);
-    } catch (e) {
-      console.log(e)
+      request.body = null;
     }
+
+    if (request.pathParameters) {
+      Object.keys(request.pathParameters).map(key => {
+        requestData ? requestData[key] = request.pathParameters[key] : requestData = { [key]: request.pathParameters[key] };
+      });
+    }
+
+    requestData = requestData ? requestData : {};
+
+    this.removeUndefinedParameters(params, {}, requestData);
+
+    this.trimRequestParameterValues(requestData);
+
+    return requestData;
   }
 
   //checks if all the parameters given in request has been specified in init script. if not removes them from requestData object
@@ -98,30 +94,21 @@ class ParameterProcessor extends baseAction {
     }
   }
 
-  validateParameters(param, requestData, action) {
-    let errorParameterName, result = true;
+  validateParameters(param, requestData) {
+    let errorParameterName;
     let responseObj = { error: null, data: {} };
-    let responseObjData = {};
-    for (let paramName in param) {
-      let paramsName = param[`${paramName}`].name
-      let isSuccessfull = this.verifyRequiredParameter(paramName, param, requestData);
-      if (!isSuccessfull) {
-        errorParameterName = param[`${paramName}`].name;
-        break;
-      }
-
-      if (!this.convertToGivenParameterType(paramName, param, requestData)) {
-        responseObj.error = { errorCode: "INVALID_INPUT_TYPE", parameterName: param[`${paramName}`].name };
-        return responseObj;
-      }
-      this.setDefaultParameters(paramName, param, requestData);
-      responseObjData[paramsName] = requestData;
+    let isSuccessfull = this.verifyRequiredParameter(param, requestData);
+    if (!isSuccessfull) {
+      errorParameterName = param.name;
+      break;
     }
-    responseObj.data = responseObjData;
-    if (errorParameterName) {
-      responseObj.error = { errorCode: "PARAMETER_IS_MANDATORY", parameterName: errorParameterName };
+
+    if (!this.convertToGivenParameterType(param, requestData)) {
+      responseObj.error = { errorCode: "INVALID_INPUT_TYPE", parameterName: param.name };
       return responseObj;
     }
+    this.setDefaultParameters(param, requestData);
+    responseObj.data = requestData;
     return responseObj;
   }
 
@@ -130,28 +117,19 @@ class ParameterProcessor extends baseAction {
     action.setMemberVariable(paramName, requestData[`${requestParamName}`]);
   }
   //converts all the request parameters to the specified type(number and string)
-  convertToGivenParameterType(paramName, paramData, requestData) {
-    const requestParamName = paramData[`${paramName}`].name;
-
-    if (requestData[`${requestParamName}`] && requestData[`${requestParamName}`] != "") {
-      if (paramData[`${paramName}`].type == "number") {
-
-        requestData[`${requestParamName}`] = Number(requestData[`${requestParamName}`]);
-
-        if (isNaN(requestData[`${requestParamName}`])) {
+  convertToGivenParameterType(paramData, requestData) {
+    if (requestData && requestData != "") {
+      if (paramData.type == "number") {
+        requestData = Number(requestData);
+        if (isNaN(requestData)) {
           //set error response if a parameter is specified in request but is not an integer
-          let options = [];
-          options.paramName = requestParamName;
           return false;
         }
-
-      } else if (paramData[`${paramName}`].type == "string") {
-        requestData[`${requestParamName}`] = requestData[`${requestParamName}`].toString();
+      } else if (paramData.type == "string") {
+        requestData = requestData.toString();
       }
-    } else if (requestData[`${requestParamName}`] == "") {
+    } else if (requestData == "") {
       //set error response if a parameter is specified in request but is empty
-      let options = [];
-      options.paramName = requestParamName;
       return false;
     }
     return true;
@@ -159,32 +137,32 @@ class ParameterProcessor extends baseAction {
 
   //if the given parameter has a default value specified and request does not have that parameter
   //then set that default value for that parameter in the request
-  setDefaultParameters(paramName, paramData, requestData) {
-    const requestParamName = paramData[`${paramName}`].name;
+  setDefaultParameters(paramData, requestData) {
+    const requestParamName = paramData.name;
 
     if (!requestData[`${requestParamName}`]) {
-      if (paramData[`${paramName}`].type == "number" && paramData[`${paramName}`].default !== "") {
+      if (paramData.type == "number" && paramData.default !== "") {
 
-        requestData[`${requestParamName}`] = Number(paramData[`${paramName}`].default);
+        requestData[`${requestParamName}`] = Number(paramData.default);
 
-      } else if (paramData[`${paramName}`].type == "string" && paramData[`${paramName}`].default !== "") {
+      } else if (paramData.type == "string" && paramData.default !== "") {
 
-        requestData[`${requestParamName}`] = paramData[`${paramName}`].default.toString();
+        requestData[`${requestParamName}`] = paramData.default.toString();
       }
     }
   }
 
   //checks if the parameter is set as required and the that parameter has some value in the request
-  verifyRequiredParameter(paramName, paramData, requestData) {
-    const requestParamName = paramData[`${paramName}`].name;
+  verifyRequiredParameter(paramData, requestData) {
+    const requestParamName = paramData.name;
 
     //if requestdata is empty and no params or body passed
     if (!requestData) {
       return false;
     }
     //checks if the paramater is given in request by user
-    if (paramData[`${paramName}`].required && (!requestData[`${requestParamName}`] ||
-      typeof (requestData[`${paramName}`]) == "string" && requestData[`${requestParamName}`].trim() == "")) {
+    if (paramData.required && (!requestData ||
+      typeof (requestData) == "string" && requestData.trim() == "")) {
       return false;
     }
 

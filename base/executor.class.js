@@ -28,8 +28,9 @@ class executor extends baseAction {
 
   async executeRequest(request) {
     try {
-      // Initializng basic variables
       this.setResponse('UNKNOWN_ERROR');
+
+      // Initializng basic variables
       const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
       const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_MODE.ENABLED));
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
@@ -38,7 +39,7 @@ class executor extends baseAction {
       // Finalize methodName including custom route
       let methodName = this.getMethodName(request.pathParameters);
 
-      request.pathParameters = null; 
+      request.pathParameters = null;
       const { customMethodName, pathParameters } = this.getCustomRoute(methodName);
       if (customMethodName) {
         request.pathParameters = pathParameters;
@@ -79,19 +80,20 @@ class executor extends baseAction {
       }
 
       // validate & process request parameters
-      // TODO: refactor below block to CLEANSING and VALIDATEPARAMS as seperate blocks
       const parameterProcessor = new ParameterProcessor();
+      const requestData = await parameterProcessor.processParameter(initInstance, request, encState);
 
-      const parameterObject = await parameterProcessor.processParameter(initInstance, request, encState);
-      if(parameterObject.error){
-        let options = [];
-        options.paramName = parameterObject.error.parameterName;
-        this.setResponse(parameterObject.error.errorCode,options);
-      }else{
-        parameterObject.data ? Object.keys(parameterObject.data).map(paramsKey =>{
-          let paramsData = parameterObject.data[paramsKey];
-          actionInstance.setMemberVariable(paramsData.paramsName,paramsData.requestData);
-        }) : false;
+      const params = initializer.getParameter();
+      for (let i in params) {
+        let param = params[i];
+        const { error, data } = parameterProcessor.validateParameters(param, requestData[param.name]);
+        if (error) {
+          let options = [];
+          options.paramName = error.parameterName;
+          this.setResponse(error.errorCode, options);
+          return false;
+        }
+        actionInstance.setMemberVariable(param.name, data);
       }
 
       // Initiate and Execute method
@@ -103,7 +105,7 @@ class executor extends baseAction {
       const responseMessage = this.getResponseMessage(responseCode)
 
       return {
-        responseCode, 
+        responseCode,
         responseMessage,
         responseData
       };
@@ -165,26 +167,26 @@ class executor extends baseAction {
 
   // TODO: In future we will move this to an Authorization class
   validateAccesstoken = async (accessToken) => {
-    let validationResponse = { error: null, data: {}};
+    let validationResponse = { error: null, data: {} };
     if (!accessToken || typeof accessToken != "string" || accessToken.trim() == "") {
       // let options = [];
       // options.paramName = 'access_token';
       // this.setResponse("INVALID_INPUT_EMPTY", options);
-      validationResponse.error = {errorCode : "INVALID_INPUT_EMPTY",parameterName : 'access_token'};
+      validationResponse.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: 'access_token' };
       return validationResponse;
     }
 
     if (this.encryptionState)
       accessToken = decrypt(accessToken);
-    
+
     const { AUTH_MODE, JWT_SECRET, JWT_ID_KEY, DB_ID_KEY, DB_TABLE_NAME, DB_ACCESS_KEY } = JSON.parse(process.env.AUTH);
     const decodedVal = await jwt.decodeJwtToken(accessToken, JWT_SECRET);
 
     if (!decodedVal || !decodedVal[JWT_ID_KEY]) {
-      validationResponse.error = {errorCode : "INVALID_INPUT_EMPTY",parameterName : 'access_token'};
+      validationResponse.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: 'access_token' };
       return validationResponse;
     }
-  
+
     if (AUTH_MODE == "JWT_DB") {
       const verifedUser = await dbManager.find(DB_TABLE_NAME, { [DB_ACCESS_KEY]: accessToken, [DB_ID_KEY]: decodedVal[JWT_ID_KEY] });
       if (verifedUser.length > 0) {
@@ -196,7 +198,7 @@ class executor extends baseAction {
       validationResponse.data = { [DB_ID_KEY]: decodedVal[JWT_ID_KEY] };
       return validationResponse;
     }
-  
+
   }
 
   capitalizeFirstLetter(string) {
@@ -228,5 +230,5 @@ class executor extends baseAction {
     }
   }
 }
-   
+
 module.exports = executor;
