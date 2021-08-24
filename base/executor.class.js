@@ -47,14 +47,15 @@ class executor extends baseAction {
       }
 
       // Resolve path from methodName
-      let pathName = this.getMethodPath(methodName);
-      if (!this.methodExists(pathName)) {
+      const pathName = this.getMethodPath(methodName);
+      const methodClasses = this.getMethodClasses(pathName);
+      if (!methodClasses) {
         this.setResponse('METHOD_NOT_FOUND');
         throw new Error();
       }
 
       // Include required files and initiate instances
-      const { action: ActionClass, init: InitClass } = requireDir(pathName);
+      const { action: ActionClass, init: InitClass } = methodClasses;
       const initInstance = new InitClass();
       const actionInstance = new ActionClass();
       if (lngKey) {
@@ -212,10 +213,9 @@ class executor extends baseAction {
     return true;
   }
 
-  methodExists(pathName) {
+  getMethodClasses(pathName) {
     try {
-      requireDir(pathName);
-      return true;
+      return requireDir(pathName);
     } catch (e) {
       return false;
     }
