@@ -95,16 +95,15 @@ class ParameterProcessor extends baseAction {
   }
 
   validateParameters(param, requestData) {
-    let errorParameterName;
     let responseObj = { error: null, data: {} };
     let isSuccessfull = this.verifyRequiredParameter(param, requestData);
     if (!isSuccessfull) {
-      errorParameterName = param.name;
-      break;
+      responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
+      return responseObj;
     }
 
     if (!this.convertToGivenParameterType(param, requestData)) {
-      responseObj.error = { errorCode: "INVALID_INPUT_TYPE", parameterName: param.name };
+      responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
       return responseObj;
     }
     this.setDefaultParameters(param, requestData);
@@ -138,31 +137,19 @@ class ParameterProcessor extends baseAction {
   //if the given parameter has a default value specified and request does not have that parameter
   //then set that default value for that parameter in the request
   setDefaultParameters(paramData, requestData) {
-    const requestParamName = paramData.name;
-
-    if (!requestData[`${requestParamName}`]) {
+    if (!requestData) {
       if (paramData.type == "number" && paramData.default !== "") {
-
-        requestData[`${requestParamName}`] = Number(paramData.default);
-
+        requestData = Number(paramData.default);
       } else if (paramData.type == "string" && paramData.default !== "") {
-
-        requestData[`${requestParamName}`] = paramData.default.toString();
+        requestData = paramData.default.toString();
       }
     }
   }
 
   //checks if the parameter is set as required and the that parameter has some value in the request
   verifyRequiredParameter(paramData, requestData) {
-    const requestParamName = paramData.name;
-
-    //if requestdata is empty and no params or body passed
-    if (!requestData) {
-      return false;
-    }
     //checks if the paramater is given in request by user
-    if (paramData.required && (!requestData ||
-      typeof (requestData) == "string" && requestData.trim() == "")) {
+    if (paramData.required && ((typeof (requestData) == "string" && requestData.trim() == "") || (typeof (requestData) == "number" && isNaN(requestData)))) {
       return false;
     }
 

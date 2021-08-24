@@ -1,7 +1,6 @@
 require("bytenode");
 const { DEFAULT_LNG_KEY } = require("@njs2/base/lib/constants");
 const path = require("path");
-const Autoload = require('./autoload.class');
 const BASE_RESPONSE_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${DEFAULT_LNG_KEY}.js`)).RESPONSE;
 const PROJECT_RESPONSE_DEFAULT_LNG = require(`../lib/i18n/response/response.${DEFAULT_LNG_KEY}.js`).RESPONSE;
 const BASE_STRING_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${DEFAULT_LNG_KEY}.js`)).STRING;
@@ -16,8 +15,7 @@ class baseAction {
     try {
       if (this.lng_key) {
         RESP = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${this.lng_key}.js`)).RESPONSE;
-        if (!RESP[code])
-          RESP = require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE;
+        RESP = { ...RESP, ...require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE };
       } else throw new Error('Fallback to default language');
     } catch (e) {
       RESP = BASE_RESPONSE_DEFAULT_LNG;
@@ -31,17 +29,24 @@ class baseAction {
       RESP = RESP[code];
     }
 
-    Autoload.responseCode = RESP.responseCode;
-    Autoload.responseMessage = RESP.responseMessage;
+    this.responseCode = RESP.responseCode;
+    this.responseMessage = RESP.responseMessage;
 
     for (let keyName in options) {
-      Autoload.responseMessage = Autoload.responseMessage.replace(keyName, options[`${keyName}`]);
+      this.responseMessage = this.responseMessage.replace(keyName, options[`${keyName}`]);
     }
     return true;
   }
 
+  getResponse () {
+    return {
+      responseCode: this.responseCode,
+      responseMessage: this.responseMessage
+    };
+  }
+
   setDebugMessage(msg) {
-    Autoload.responseMessage = msg;
+    this.responseMessage = msg;
   }
 
   setMemberVariable(paramName, value) {

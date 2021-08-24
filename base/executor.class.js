@@ -50,7 +50,7 @@ class executor extends baseAction {
       let pathName = this.getMethodPath(methodName);
       if (!this.methodExists(pathName)) {
         this.setResponse('METHOD_NOT_FOUND');
-        return false;
+        throw new Error();
       }
 
       // Include required files and initiate instances
@@ -64,7 +64,7 @@ class executor extends baseAction {
       // Validate request method with initializer
       if (!this.isValidRequestMethod(request.httpMethod, initInstance.pkgInitializer.requestMethod)) {
         this.setResponse('INVALID_REQUEST_METHOD');
-        return false;
+        throw new Error();
       }
 
       // if secured endpoint validate access token
@@ -74,7 +74,7 @@ class executor extends baseAction {
           let options = [];
           options.paramName = error.parameterName;
           this.setResponse(error.errorCode, options);
-          return false;
+          throw new Error();
         }
         actionInstance.setMemberVariable('userObj', data);
       }
@@ -83,37 +83,40 @@ class executor extends baseAction {
       const parameterProcessor = new ParameterProcessor();
       const requestData = await parameterProcessor.processParameter(initInstance, request, encState);
 
-      const params = initializer.getParameter();
-      for (let i in params) {
-        let param = params[i];
+      const params = initInstance.getParameter();
+      for (let paramName in params) {
+        let param = params[paramName];
         const { error, data } = parameterProcessor.validateParameters(param, requestData[param.name]);
         if (error) {
           let options = [];
           options.paramName = error.parameterName;
           this.setResponse(error.errorCode, options);
-          return false;
+          throw new Error();
         }
-        actionInstance.setMemberVariable(param.name, data);
+        actionInstance.setMemberVariable(paramName, data);
       }
 
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
-      const { responseCode } = actionInstance.getResponseCode();
-      // if (encryptionState) {
-      //   this.responseData = encrypt(JSON.stringify(this.responseData));
-      // }
-      const responseMessage = this.getResponseMessage(responseCode)
+      const { responseCode, responseMessage } = actionInstance.getResponse();
+      if (encryptionState) {
+        this.responseData = encrypt(JSON.stringify(this.responseData));
+      }
 
       return {
         responseCode,
         responseMessage,
-        responseData
+        responseData: this.responseData
       };
-
     } catch (e) {
-      if (process.env.MODE == "DEV") this.setDebugMessage(e.message);
+      if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
       console.log("Exception caught", e);
-      return false;
+      const { responseCode, responseMessage } = this.getResponse();
+      return {
+        responseCode,
+        responseMessage,
+        responseData: {}
+      };
     }
   }
 
@@ -169,9 +172,6 @@ class executor extends baseAction {
   validateAccesstoken = async (accessToken) => {
     let validationResponse = { error: null, data: {} };
     if (!accessToken || typeof accessToken != "string" || accessToken.trim() == "") {
-      // let options = [];
-      // options.paramName = 'access_token';
-      // this.setResponse("INVALID_INPUT_EMPTY", options);
       validationResponse.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: 'access_token' };
       return validationResponse;
     }
@@ -203,15 +203,6 @@ class executor extends baseAction {
 
   capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-
-  getResponse() {
-    const response = {
-      responseCode: Autoload.responseCode,
-      responseMessage: Autoload.responseMessage,
-      responseData: this.responseData,
-    }
-    return response;
   }
 
   isValidRequestMethod(httpMethod, requestMethod) {
