@@ -42,7 +42,7 @@ module.exports.sockets = async (event) => {
     }
 
     const executor = new Executor();
-    await executor.executeMethod(wsEvent);
+    await executor.executeRequest(wsEvent);
     await njsWebsocket.emit(event.requestContext.connectionId, { "request_id": body.request_id, "body": executor.getResponse() });
     return { statusCode: 200, body: {} };
   } catch (e) {

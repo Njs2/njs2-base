@@ -1,4 +1,3 @@
-require("bytenode");
 const { DEFAULT_LNG_KEY } = require("@njs2/base/lib/constants");
 const path = require("path");
 const BASE_RESPONSE_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${DEFAULT_LNG_KEY}.js`)).RESPONSE;
@@ -18,9 +17,7 @@ class baseAction {
         RESP = { ...RESP, ...require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE };
       } else throw new Error('Fallback to default language');
     } catch (e) {
-      RESP = BASE_RESPONSE_DEFAULT_LNG;
-      if (!RESP[code])
-        RESP = PROJECT_RESPONSE_DEFAULT_LNG;
+      RESP = { ...PROJECT_RESPONSE_DEFAULT_LNG, ...BASE_RESPONSE_DEFAULT_LNG };
     }
 
     if (!RESP[code]) {

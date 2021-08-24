@@ -19,7 +19,7 @@ app.get('/postman', (req, res) => {
 });
 
 app.all("*", async (req, res) => {
-  // Neutralize input parameter received from express for Executor.executeMethod
+  // Neutralize input parameter received from express for Executor.executeRequest
   let executorReq = {};
   executorReq.httpMethod = req.method;
   executorReq.queryStringParameters = req.query;

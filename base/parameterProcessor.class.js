@@ -111,10 +111,6 @@ class ParameterProcessor extends baseAction {
     return responseObj;
   }
 
-  setVariableValues(paramName, paramData, requestData, action) {
-    const requestParamName = paramData[`${paramName}`].name;
-    action.setMemberVariable(paramName, requestData[`${requestParamName}`]);
-  }
   //converts all the request parameters to the specified type(number and string)
   convertToGivenParameterType(paramData, requestData) {
     if (requestData && requestData != "") {

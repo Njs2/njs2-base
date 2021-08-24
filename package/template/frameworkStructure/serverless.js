@@ -6,7 +6,7 @@ module.exports.execute = async event => {
 
   try {
     const executor = new Executor();
-    await executor.executeMethod(event);
+    await executor.executeRequest(event);
 
     return responseHelper.send(executor.getResponse());
   } catch (e) {
