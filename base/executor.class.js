@@ -82,20 +82,20 @@ class executor {
 
       // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
-
       const params = initInstance.getParameter();
       for (let paramName in params) {
+        //TODO: refactor .processParameter to handle 1 field at a time. Exit early!
         let param = params[paramName];
-
         const requestData = await parameterProcessor.processParameter(param, request, encState);
-        const { error, data } = parameterProcessor.validateParameters(param, requestData);
+        //TODO: change data to value
+        const { error, value } = parameterProcessor.validateParameters(param, requestData[param.name]);
         if (error) {
-          let options = [];
-          options.paramName = error.parameterName;
-          this.setResponse(error.errorCode, options);
+          this.setResponse(error.errorCode, {
+            paramName: error.paramName
+          });
           throw new Error();
         }
-        actionInstance.setMemberVariable(paramName, data);
+        actionInstance.setMemberVariable(paramName, value);
       }
 
       // Initiate and Execute method

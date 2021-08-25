@@ -7,6 +7,11 @@ const PROJECT_STRING_DEFAULT_LNG = require(`../lib/i18n/string/string.${DEFAULT_
 
 class baseAction {
 
+  //TODO: Check the member variable
+  constructor() {
+    this.responseCode = '';
+  }
+
   setResponse(code, options = [], packageName) {
     // const pkgName = packageName && packageName.indexOf('@') == 0 ? packageName.split('/')[0].substring(1) : packageName;
     // let RESP = pkgName && global.RESPONSE[`${pkgName}-${code}`] ? global.RESPONSE[`${pkgName}-${code}`] : global.RESPONSE[`${code}`];
@@ -52,9 +57,16 @@ class baseAction {
   }
 
   loadPkg(packageName) {
-    return require(path.resolve(process.cwd(), `Njs2-modules/${packageName.indexOf('@') == 0 ? packageName.split('/').join('/methods/').substring(1) : packageName}`))();
+    return require(path.resolve(
+      process.cwd(),
+      `Njs2-modules/${
+        packageName.indexOf("@") == 0
+          ? packageName.split("/").join("/methods/").substring(1)
+          : packageName
+      }`
+    ))();
   }
-
+  // TODO: revisit later to reposition this function/responsibilities
   getResponseList() {
     let RESP;
     try {
@@ -68,7 +80,7 @@ class baseAction {
 
     return Object.keys(RESP).map(res => RESP[res]);
   }
-
+  // TODO: revisit later to reposition this function/responsibilities
   getStringValue(key) {
     let STR = '';
     try {
