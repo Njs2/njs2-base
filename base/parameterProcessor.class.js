@@ -1,42 +1,17 @@
+class ParameterProcessor {
 
-const { decrypt } = require("./encryption");
-const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
-const ENC_MODE = require('../lib/constants')
-
-class ParameterProcessor extends baseAction {
-
-  async processParameter(initializer, request, encState) {
-    let requestData;
-    let encryptionState = true;
-    const params = initializer.getParameter();
-
-    this.removeUndefinedParameters(params, {}, requestData);
-
+  async processParameter(params, requestData) {
+    this.removeUndefinedParameters(params, requestData);
     this.trimRequestParameterValues(requestData);
-
     return requestData;
   }
 
   //checks if all the parameters given in request has been specified in init script. if not removes them from requestData object
-  removeUndefinedParameters(paramData, authParamData, requestData) {
-
-    let matchFound = false;
-    for (let requestParamName in requestData) {
-      matchFound = false;
-      for (let paramName in paramData) {
-        if (requestParamName == paramData[`${paramName}`].name) {
-          matchFound = true;
-        }
-      }
-      for (let paramName in authParamData) {
-        if (requestParamName == authParamData[`${paramName}`].name) {
-          matchFound = true;
-        }
-      }
-      if (!matchFound) {
-        delete requestData[`${requestParamName}`];
-      }
+  removeUndefinedParameters(paramData, requestData) {
+    if (!requestData) {
+      return;
     }
+    // if (paramData.name ==
   }
 
 
@@ -50,7 +25,7 @@ class ParameterProcessor extends baseAction {
   }
 
   validateParameters(param, requestData) {
-    let responseObj = { error: null, data: {} };
+    let responseObj = { error: null, value: null };
     let isSuccessfull = this.verifyRequiredParameter(param, requestData);
     if (!isSuccessfull) {
       responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
@@ -62,7 +37,7 @@ class ParameterProcessor extends baseAction {
       return responseObj;
     }
     this.setDefaultParameters(param, requestData);
-    responseObj.data = requestData;
+    responseObj.value = requestData;
     return responseObj;
   }
 

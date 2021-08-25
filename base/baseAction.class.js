@@ -12,9 +12,13 @@ class baseAction {
     this.responseCode = '';
   }
 
-  setResponse(code, options = [], packageName) {
-    // const pkgName = packageName && packageName.indexOf('@') == 0 ? packageName.split('/')[0].substring(1) : packageName;
-    // let RESP = pkgName && global.RESPONSE[`${pkgName}-${code}`] ? global.RESPONSE[`${pkgName}-${code}`] : global.RESPONSE[`${code}`];
+  setResponse(responseCode, options) {
+    this.responseCode = responseCode;
+    this.responseOptions = options;
+    return true;
+  }
+
+  getResponse() {
     let RESP;
     try {
       if (this.lng_key) {
@@ -25,30 +29,23 @@ class baseAction {
       RESP = { ...PROJECT_RESPONSE_DEFAULT_LNG, ...BASE_RESPONSE_DEFAULT_LNG };
     }
 
-    if (!RESP[code]) {
+    if (!RESP[this.responseCode]) {
       RESP = RESP["RESPONSE_CODE_NOT_FOUND"];
     } else {
-      RESP = RESP[code];
+      RESP = RESP[this.responseCode];
     }
 
     this.responseCode = RESP.responseCode;
     this.responseMessage = RESP.responseMessage;
 
-    for (let keyName in options) {
-      this.responseMessage = this.responseMessage.replace(keyName, options[`${keyName}`]);
-    }
-    return true;
-  }
+    Object.keys(this.responseOptions).map(keyName => {
+      this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
+    });
 
-  getResponse () {
     return {
       responseCode: this.responseCode,
       responseMessage: this.responseMessage
     };
-  }
-
-  setDebugMessage(msg) {
-    this.responseMessage = msg;
   }
 
   setMemberVariable(paramName, value) {
@@ -59,10 +56,9 @@ class baseAction {
   loadPkg(packageName) {
     return require(path.resolve(
       process.cwd(),
-      `Njs2-modules/${
-        packageName.indexOf("@") == 0
-          ? packageName.split("/").join("/methods/").substring(1)
-          : packageName
+      `Njs2-modules/${packageName.indexOf("@") == 0
+        ? packageName.split("/").join("/methods/").substring(1)
+        : packageName
       }`
     ))();
   }

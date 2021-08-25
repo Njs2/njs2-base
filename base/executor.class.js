@@ -8,7 +8,6 @@ glbvalue = require(path.join(process.cwd(), "src/global/index.js"));
 require("./env");
 
 const requireDir = require('require-dir');
-const Autoload = require('./autoload.class');
 const { encrypt, decrypt } = require("./encryption");
 const ParameterProcessor = require('./parameterProcessor.class');
 const dbManager = require("../package/dbManager").dbManager;
@@ -22,7 +21,6 @@ const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class executor {
 
   constructor() {
-    super();
     this.responseData = {};
   }
 
@@ -72,9 +70,9 @@ class executor {
       if (initInstance.pkgInitializer.isSecured) {
         const { error, data } = await this.validateAccesstoken(accessToken);
         if (error) {
-          let options = [];
-          options.paramName = error.parameterName;
-          this.setResponse(error.errorCode, options);
+          this.setResponse(error.errorCode, {
+            paramName: error.parameterName
+          });
           throw new Error();
         }
         actionInstance.setMemberVariable('userObj', data);
@@ -83,12 +81,15 @@ class executor {
       // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
       const params = initInstance.getParameter();
+      const requestData = this.parseRequestData(request, this.isFileExpected(params));
+
+      console.log(requestData);
       for (let paramName in params) {
         //TODO: refactor .processParameter to handle 1 field at a time. Exit early!
         let param = params[paramName];
-        const requestData = await parameterProcessor.processParameter(param, request, encState);
+        const parrsedData = await parameterProcessor.processParameter(param, requestData[param.name]);
         //TODO: change data to value
-        const { error, value } = parameterProcessor.validateParameters(param, requestData[param.name]);
+        const { error, value } = parameterProcessor.validateParameters(param, parrsedData);
         if (error) {
           this.setResponse(error.errorCode, {
             paramName: error.paramName
@@ -255,6 +256,55 @@ class executor {
     }
 
     return requestData ? requestData : {};
+  }
+
+  setMemberVariable(paramName, value) {
+    this[`${paramName}`] = value;
+    return true;
+  }
+
+  setDebugMessage(msg) {
+    this.responseMessage = msg;
+  }
+
+  setResponse(responseCode, options) {
+    this.responseCode = responseCode;
+    this.responseOptions = options;
+    return true;
+  }
+
+  getResponse() {
+    const BASE_RESPONSE_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${DEFAULT_LNG_KEY}.js`)).RESPONSE;
+    const PROJECT_RESPONSE_DEFAULT_LNG = require(`../lib/i18n/response/response.${DEFAULT_LNG_KEY}.js`).RESPONSE;
+
+    let RESP;
+    try {
+      if (this.lng_key) {
+        RESP = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${this.lng_key}.js`)).RESPONSE;
+        RESP = { ...RESP, ...require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE };
+      } else throw new Error('Fallback to default language');
+    } catch (e) {
+      RESP = { ...PROJECT_RESPONSE_DEFAULT_LNG, ...BASE_RESPONSE_DEFAULT_LNG };
+    }
+
+    if (!RESP[this.responseCode]) {
+      RESP = RESP["RESPONSE_CODE_NOT_FOUND"];
+    } else {
+      RESP = RESP[this.responseCode];
+    }
+
+    this.responseCode = RESP.responseCode;
+    this.responseMessage = RESP.responseMessage;
+
+    Object.keys(this.responseOptions).map(keyName => {
+      this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
+    });
+
+    return {
+      responseCode: this.responseCode,
+      responseMessage: this.responseMessage,
+      responseData: this.responseData
+    };
   }
 }
 
