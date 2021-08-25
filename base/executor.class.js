@@ -77,13 +77,12 @@ class executor {
         }
         actionInstance.setMemberVariable('userObj', data);
       }
-
       // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
       const params = initInstance.getParameter();
       const isFileExpected = this.isFileExpected(params);
       let requestData = this.parseRequestData(request, isFileExpected);
-
+      //TODO: file parsing : this.parseFile()
       // If encyption is enabled, then decrypt the request data
       if (!isFileExpected && encryptionState) {
         requestData = decrypt(requestData.data);
@@ -92,11 +91,9 @@ class executor {
       }
 
       for (let paramName in params) {
-        //TODO: refactor .processParameter to handle 1 field at a time. Exit early!
         let param = params[paramName];
-        const parrsedData = await parameterProcessor.processParameter(requestData[param.name]);
-        //TODO: change data to value
-        const { error, value } = parameterProcessor.validateParameters(param, parrsedData);
+        const parsedData = await parameterProcessor.processParameter(requestData[param.name]);
+        const { error, value } = parameterProcessor.validateParameters(param, parsedData);
         if (error) {
           this.setResponse(error.errorCode, {
             paramName: error.paramName
@@ -108,11 +105,12 @@ class executor {
 
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
+      //TODO: change to this.getResponse(responseString, resposeOptions)
       const { responseCode, responseMessage } = actionInstance.getResponse();
       if (encryptionState) {
         this.responseData = encrypt(JSON.stringify(this.responseData));
       }
-
+      
       return {
         responseCode,
         responseMessage,
@@ -242,8 +240,12 @@ class executor {
     //remove the request query/body parameters from request object
     if (request.httpMethod == 'GET') {
       requestData = request.queryStringParameters;
-    } else if (request.httpMethod == 'POST') {
+    }
+    
+    if (request.httpMethod == 'POST') {
+      requestData = request.body;
       if (typeof (request.body) == "string") {
+        // TODO: move to executor class
         if (fileExists) {
           const multipart = require('aws-multipart-parser');
           requestData = multipart.parse(request, true);
@@ -251,14 +253,14 @@ class executor {
           const querystring = require('querystring');
           requestData = querystring.parse(request.body);
         }
-      } else {
-        requestData = request.body;
       }
     }
 
     if (request.pathParameters) {
       Object.keys(request.pathParameters).map(key => {
-        requestData ? requestData[key] = request.pathParameters[key] : requestData = { [key]: request.pathParameters[key] };
+        requestData
+          ? (requestData[key] = request.pathParameters[key])
+          : (requestData = { [key]: request.pathParameters[key] });
       });
     }
 

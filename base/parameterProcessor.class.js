@@ -8,7 +8,6 @@ class ParameterProcessor {
 
   //checks if all the parameters given in request has been specified in init script. if not removes them from requestData object
   removeUndefinedParameters(requestData) {
-    console.log("requestData", requestData);
     if (!["number", "string"].includes(typeof requestData) || (typeof requestData == "object" && !requestData)) {
       return;
     }
@@ -25,17 +24,22 @@ class ParameterProcessor {
 
   validateParameters(param, requestData) {
     let responseObj = { error: null, value: null };
+    //TODO: Check Type of param
+    
+    //Check if param is declared as Mandatory or Optional in InitClass
     let isSuccessfull = this.verifyRequiredParameter(param, requestData);
     if (!isSuccessfull) {
       responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
       return responseObj;
     }
-
+    //TODO: check if below block needed
     if (!this.convertToGivenParameterType(param, requestData)) {
       responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
       return responseObj;
     }
-    this.setDefaultParameters(param, requestData);
+    //Set Default value to param when it is Optional
+    //TODO: return the value and set from here
+    this.setDefaultValue(param, requestData);
     responseObj.value = requestData;
     return responseObj;
   }
