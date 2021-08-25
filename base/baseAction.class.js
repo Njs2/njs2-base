@@ -38,9 +38,10 @@ class baseAction {
     this.responseCode = RESP.responseCode;
     this.responseMessage = RESP.responseMessage;
 
-    Object.keys(this.responseOptions).map(keyName => {
-      this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
-    });
+    if (this.responseOptions)
+      Object.keys(this.responseOptions).map(keyName => {
+        this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
+      });
 
     return {
       responseCode: this.responseCode,

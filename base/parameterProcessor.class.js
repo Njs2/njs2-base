@@ -1,27 +1,26 @@
 class ParameterProcessor {
 
-  async processParameter(params, requestData) {
-    this.removeUndefinedParameters(params, requestData);
-    this.trimRequestParameterValues(requestData);
+  async processParameter(requestData) {
+    requestData = this.removeUndefinedParameters(requestData);
+    requestData = this.trimRequestParameterValues(requestData);
     return requestData;
   }
 
   //checks if all the parameters given in request has been specified in init script. if not removes them from requestData object
-  removeUndefinedParameters(paramData, requestData) {
-    if (!requestData) {
+  removeUndefinedParameters(requestData) {
+    console.log("requestData", requestData);
+    if (!["number", "string"].includes(typeof requestData) || (typeof requestData == "object" && !requestData)) {
       return;
     }
-    // if (paramData.name ==
+    return requestData;
   }
-
 
   //trims the spaces if any in the request parameter's value
   trimRequestParameterValues(requestData) {
-    for (let paramName in requestData) {
-      if (typeof (requestData[`${paramName}`]) == "string") {
-        requestData[`${paramName}`] = requestData[`${paramName}`].trim();
-      }
+    if (typeof requestData === "string") {
+      return requestData.trim();
     }
+    return requestData;
   }
 
   validateParameters(param, requestData) {

@@ -81,13 +81,20 @@ class executor {
       // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
       const params = initInstance.getParameter();
-      const requestData = this.parseRequestData(request, this.isFileExpected(params));
+      const isFileExpected = this.isFileExpected(params);
+      let requestData = this.parseRequestData(request, isFileExpected);
 
-      console.log(requestData);
+      // If encyption is enabled, then decrypt the request data
+      if (!isFileExpected && encryptionState) {
+        requestData = decrypt(requestData.data);
+        if (typeof requestData === 'string')
+          requestData = JSON.parse(requestData);
+      }
+
       for (let paramName in params) {
         //TODO: refactor .processParameter to handle 1 field at a time. Exit early!
         let param = params[paramName];
-        const parrsedData = await parameterProcessor.processParameter(param, requestData[param.name]);
+        const parrsedData = await parameterProcessor.processParameter(requestData[param.name]);
         //TODO: change data to value
         const { error, value } = parameterProcessor.validateParameters(param, parrsedData);
         if (error) {
@@ -112,9 +119,9 @@ class executor {
         responseData: this.responseData
       };
     } catch (e) {
-      if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
       console.log("Exception caught", e);
       const { responseCode, responseMessage } = this.getResponse();
+      if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
       return {
         responseCode,
         responseMessage,
@@ -296,9 +303,10 @@ class executor {
     this.responseCode = RESP.responseCode;
     this.responseMessage = RESP.responseMessage;
 
-    Object.keys(this.responseOptions).map(keyName => {
-      this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
-    });
+    if (this.responseOptions)
+      Object.keys(this.responseOptions).map(keyName => {
+        this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
+      });
 
     return {
       responseCode: this.responseCode,
