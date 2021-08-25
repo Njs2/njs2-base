@@ -19,7 +19,7 @@ const jwt = require('../package/jwt');
 
 
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
-class executor extends baseAction {
+class executor {
 
   constructor() {
     super();
@@ -82,12 +82,13 @@ class executor extends baseAction {
 
       // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
-      const requestData = await parameterProcessor.processParameter(initInstance, request, encState);
 
       const params = initInstance.getParameter();
       for (let paramName in params) {
         let param = params[paramName];
-        const { error, data } = parameterProcessor.validateParameters(param, requestData[param.name]);
+
+        const requestData = await parameterProcessor.processParameter(param, request, encState);
+        const { error, data } = parameterProcessor.validateParameters(param, requestData);
         if (error) {
           let options = [];
           options.paramName = error.parameterName;
@@ -191,7 +192,6 @@ class executor extends baseAction {
     if (AUTH_MODE == "JWT_DB") {
       const verifedUser = await dbManager.find(DB_TABLE_NAME, { [DB_ACCESS_KEY]: accessToken, [DB_ID_KEY]: decodedVal[JWT_ID_KEY] });
       if (verifedUser.length > 0) {
-        //return verifedUser[0];
         validationResponse.data = verifedUser[0];
         return validationResponse;
       };
@@ -219,6 +219,42 @@ class executor extends baseAction {
     } catch (e) {
       return false;
     }
+  }
+
+  isFileExpected(params) {
+    let fileExpected = false;
+    Object.keys(params).map(key => {
+      if (params[key].type == 'file') fileExpected = true;
+    });
+    return fileExpected;
+  }
+
+  parseRequestData(request, fileExists) {
+    let requestData = {};
+    //remove the request query/body parameters from request object
+    if (request.httpMethod == 'GET') {
+      requestData = request.queryStringParameters;
+    } else if (request.httpMethod == 'POST') {
+      if (typeof (request.body) == "string") {
+        if (fileExists) {
+          const multipart = require('aws-multipart-parser');
+          requestData = multipart.parse(request, true);
+        } else {
+          const querystring = require('querystring');
+          requestData = querystring.parse(request.body);
+        }
+      } else {
+        requestData = request.body;
+      }
+    }
+
+    if (request.pathParameters) {
+      Object.keys(request.pathParameters).map(key => {
+        requestData ? requestData[key] = request.pathParameters[key] : requestData = { [key]: request.pathParameters[key] };
+      });
+    }
+
+    return requestData ? requestData : {};
   }
 }
 

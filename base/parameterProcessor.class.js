@@ -1,7 +1,6 @@
-const querystring = require('querystring');
+
 const { decrypt } = require("./encryption");
 const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
-const multipart = require('aws-multipart-parser');
 const ENC_MODE = require('../lib/constants')
 
 class ParameterProcessor extends baseAction {
@@ -10,50 +9,6 @@ class ParameterProcessor extends baseAction {
     let requestData;
     let encryptionState = true;
     const params = initializer.getParameter();
-
-    let fileExists = false;
-    Object.keys(params).map(key => {
-      if (params[key].type == 'file') fileExists = true;
-    });
-
-    //remove the request query/body parameters from request object
-    if (request.httpMethod == 'GET') {
-      requestData = request.queryStringParameters;
-      encryptionState = encState == 1;
-      if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
-        requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
-      }
-      request.queryStringParameters = null;
-      request.multiValueQueryStringParameters = null;
-    } else if (request.httpMethod == 'POST') {
-      if (typeof (request.body) == "string") {
-        if (fileExists) {
-          requestData = multipart.parse(request, true);
-        } else {
-          requestData = querystring.parse(request.body);
-        }
-        encryptionState = encState == 1;
-        if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
-          const urlParams = new URLSearchParams(requestData);
-          requestData = requestData.data ? JSON.parse(decrypt(Object.fromEntries(urlParams).data)) : {};
-        }
-      } else {
-        requestData = request.body;
-        encryptionState = encState == 1;
-        if (!fileExists && (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encryptionState))) {
-          requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
-        }
-      }
-      request.body = null;
-    }
-
-    if (request.pathParameters) {
-      Object.keys(request.pathParameters).map(key => {
-        requestData ? requestData[key] = request.pathParameters[key] : requestData = { [key]: request.pathParameters[key] };
-      });
-    }
-
-    requestData = requestData ? requestData : {};
 
     this.removeUndefinedParameters(params, {}, requestData);
 
