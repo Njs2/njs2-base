@@ -9,43 +9,20 @@ class baseAction {
 
   //TODO: Check the member variable
   constructor() {
-    this.responseCode = '';
+    this.responseString = '';
+    this.responseOptions = {};
   }
 
-  setResponse(responseCode, options) {
-    this.responseCode = responseCode;
+  setResponse(responseString, options) {
+    this.responseString = responseString;
     this.responseOptions = options;
     return true;
   }
 
-  getResponse() {
-    let RESP;
-    try {
-      if (this.lng_key) {
-        RESP = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${this.lng_key}.js`)).RESPONSE;
-        RESP = { ...RESP, ...require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE };
-      } else throw new Error('Fallback to default language');
-    } catch (e) {
-      RESP = { ...PROJECT_RESPONSE_DEFAULT_LNG, ...BASE_RESPONSE_DEFAULT_LNG };
-    }
-
-    if (!RESP[this.responseCode]) {
-      RESP = RESP["RESPONSE_CODE_NOT_FOUND"];
-    } else {
-      RESP = RESP[this.responseCode];
-    }
-
-    this.responseCode = RESP.responseCode;
-    this.responseMessage = RESP.responseMessage;
-
-    if (this.responseOptions)
-      Object.keys(this.responseOptions).map(keyName => {
-        this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
-      });
-
+  getResponseString() {
     return {
-      responseCode: this.responseCode,
-      responseMessage: this.responseMessage
+      responseString: this.responseString,
+      responseOptions: this.responseOptions ? this.responseOptions : {}
     };
   }
 

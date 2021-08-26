@@ -105,12 +105,13 @@ class executor {
 
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
-      //TODO: change to this.getResponse(responseString, resposeOptions)
-      const { responseCode, responseMessage } = actionInstance.getResponse();
+      const { responseString, responseOptions } = actionInstance.getResponseString();
+      // OR: this.setResponse(responseString, responseOptions);
+      const { responseCode, responseMessage } = this.getResponse(responseString, responseOptions);
       if (encryptionState) {
         this.responseData = encrypt(JSON.stringify(this.responseData));
       }
-      
+
       return {
         responseCode,
         responseMessage,
@@ -241,7 +242,7 @@ class executor {
     if (request.httpMethod == 'GET') {
       requestData = request.queryStringParameters;
     }
-    
+
     if (request.httpMethod == 'POST') {
       requestData = request.body;
       if (typeof (request.body) == "string") {
@@ -282,7 +283,11 @@ class executor {
     return true;
   }
 
-  getResponse() {
+  getResponse(responseString, responseOptions) {
+    if (responseString) {
+      this.responseCode = responseString;
+      this.responseOptions = responseOptions;
+    }
     const BASE_RESPONSE_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${DEFAULT_LNG_KEY}.js`)).RESPONSE;
     const PROJECT_RESPONSE_DEFAULT_LNG = require(`../lib/i18n/response/response.${DEFAULT_LNG_KEY}.js`).RESPONSE;
 

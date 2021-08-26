@@ -24,55 +24,64 @@ class ParameterProcessor {
 
   validateParameters(param, requestData) {
     let responseObj = { error: null, value: null };
-    //TODO: Check Type of param
-    
+    // Check Type of param
+    let paramData = this.convertToGivenParameterType(param, requestData);
+    if (!paramData) {
+      responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
+      return responseObj;
+    }
+
     //Check if param is declared as Mandatory or Optional in InitClass
-    let isSuccessfull = this.verifyRequiredParameter(param, requestData);
-    if (!isSuccessfull) {
+    let validatedData = this.verifyRequiredParameter(param, paramData);
+    if (!validatedData) {
       responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
       return responseObj;
     }
-    //TODO: check if below block needed
-    if (!this.convertToGivenParameterType(param, requestData)) {
-      responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
-      return responseObj;
-    }
+
     //Set Default value to param when it is Optional
-    //TODO: return the value and set from here
-    this.setDefaultValue(param, requestData);
-    responseObj.value = requestData;
+    responseObj.value = this.setDefaultParameters(param, validatedData);
     return responseObj;
   }
 
   //converts all the request parameters to the specified type(number and string)
   convertToGivenParameterType(paramData, requestData) {
-    if (requestData && requestData != "") {
-      if (paramData.type == "number") {
-        requestData = Number(requestData);
-        if (isNaN(requestData)) {
-          //set error response if a parameter is specified in request but is not an integer
+    let res;
+    switch (paramData.type) {
+      case "number":
+        res = Number(requestData);
+        // set error response if a parameter is specified in request but is not an integer
+        if (isNaN(res)) {
           return false;
         }
-      } else if (paramData.type == "string") {
-        requestData = requestData.toString();
-      }
-    } else if (requestData == "") {
-      //set error response if a parameter is specified in request but is empty
-      return false;
+        break;
+
+      case "string":
+        res = requestData.toString();
+        break;
+
+      case "file":
+        res = requestData;
+        break;
+
+      default:
+        res = requestData;
+        break;
     }
-    return true;
+    return res;
   }
 
   //if the given parameter has a default value specified and request does not have that parameter
   //then set that default value for that parameter in the request
   setDefaultParameters(paramData, requestData) {
+    let res = requestData;
     if (!requestData) {
       if (paramData.type == "number" && paramData.default !== "") {
-        requestData = Number(paramData.default);
+        res = Number(paramData.default);
       } else if (paramData.type == "string" && paramData.default !== "") {
-        requestData = paramData.default.toString();
+        res = paramData.default.toString();
       }
     }
+    return res;
   }
 
   //checks if the parameter is set as required and the that parameter has some value in the request
@@ -82,7 +91,7 @@ class ParameterProcessor {
       return false;
     }
 
-    return true;
+    return requestData;
   }
 }
 
