@@ -1,6 +1,6 @@
 class ParameterProcessor {
 
-  async processParameter(requestData) {
+  processParameter(requestData) {
     requestData = this.removeUndefinedParameters(requestData);
     requestData = this.trimRequestParameterValues(requestData);
     return requestData;

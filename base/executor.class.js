@@ -20,11 +20,14 @@ const jwt = require('../package/jwt');
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class executor {
 
+  make call to baseHelper instance 
+
   constructor() {
     this.responseData = {};
   }
 
   async executeRequest(request) {
+    
     try {
       this.setResponse('UNKNOWN_ERROR');
 
