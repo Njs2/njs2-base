@@ -1,5 +1,8 @@
 const RESPONSE = {
-  SUCCESS: { responseCode: 100001, responseMessage: "Success" },
+  SUCCESS: { responseCode: 100001, responseMessage: {
+    "en": "Success",
+    "es": "Success_es"
+  } },
   PARAMETER_IS_MANDATORY: { responseCode: 100002, responseMessage: "paramName is Mandatory Parameter" },
   METHOD_NOT_FOUND: { responseCode: 100003, responseMessage: "Invalid API! API not found" },
   INVALID_REQUEST_METHOD: { responseCode: 100004, responseMessage: "Invalid Request method" },

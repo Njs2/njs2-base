@@ -2,9 +2,10 @@ const path = require("path");
 baseInitialize = require('./baseInitialize.class');
 baseAction = require("./baseAction.class");
 basePkg = require("./basePackage.class");
+// TODO: move to global helper Static CLass which an be used everywhere
 glbvalue = require(path.join(process.cwd(), "src/global/index.js"));
 
-
+// TODO: refactor
 require("./env");
 
 const requireDir = require('require-dir');
@@ -34,6 +35,7 @@ class executor {
       // Initializng basic variables
       const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
       const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_MODE.ENABLED));
+      //TODO: If ENC_MODE is STRICT, check if enc_state is passed as 1 if not THROW error
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
       this.setMemberVariable('encryptionState', encryptionState);
 
@@ -187,9 +189,6 @@ class executor {
       validationResponse.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: 'access_token' };
       return validationResponse;
     }
-
-    if (this.encryptionState)
-      accessToken = decrypt(accessToken);
 
     const { AUTH_MODE, JWT_SECRET, JWT_ID_KEY, DB_ID_KEY, DB_TABLE_NAME, DB_ACCESS_KEY } = JSON.parse(process.env.AUTH);
     const decodedVal = await jwt.decodeJwtToken(accessToken, JWT_SECRET);
