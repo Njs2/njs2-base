@@ -1,7 +1,5 @@
-const { DEFAULT_LNG_KEY } = require("@njs2/base/lib/constants");
+const { DEFAULT_LNG_KEY } = require("../helper/globalConstants");
 const path = require("path");
-const BASE_RESPONSE_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${DEFAULT_LNG_KEY}.js`)).RESPONSE;
-const PROJECT_RESPONSE_DEFAULT_LNG = require(`../lib/i18n/response/response.${DEFAULT_LNG_KEY}.js`).RESPONSE;
 const BASE_STRING_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${DEFAULT_LNG_KEY}.js`)).STRING;
 const PROJECT_STRING_DEFAULT_LNG = require(`../lib/i18n/string/string.${DEFAULT_LNG_KEY}.js`).STRING;
 
@@ -42,15 +40,10 @@ class baseAction {
   }
   // TODO: revisit later to reposition this function/responsibilities
   getResponseList() {
-    let RESP;
-    try {
-      if (this.lng_key) {
-        RESP = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${this.lng_key}.js`)).RESPONSE;
-        RESP = { ...RESP, ...require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE };
-      } else throw new Error('Fallback to default language');
-    } catch (e) {
-      RESP = { ...PROJECT_RESPONSE_DEFAULT_LNG, ...BASE_RESPONSE_DEFAULT_LNG };
-    }
+    const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response/response.js`)).RESPONSE;
+    const PROJECT_RESPONSE = require(`../lib/i18n/response/response.js`).RESPONSE;
+
+    let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
     return Object.keys(RESP).map(res => RESP[res]);
   }

@@ -276,8 +276,8 @@ class executor {
       this.responseCode = responseString;
       this.responseOptions = responseOptions;
     }
-    const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${DEFAULT_LNG_KEY}.js`)).RESPONSE;
-    const PROJECT_RESPONSE = require(`../lib/i18n/response/response.${DEFAULT_LNG_KEY}.js`).RESPONSE;
+    const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response/response.js`)).RESPONSE;
+    const PROJECT_RESPONSE = require(`../lib/i18n/response/response.js`).RESPONSE;
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
