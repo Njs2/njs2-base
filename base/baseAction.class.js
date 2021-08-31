@@ -48,13 +48,13 @@ class baseAction {
     return Object.keys(RESP).map(res => RESP[res]);
   }
   // TODO: revisit later to reposition this function/responsibilities
-  getStringValue(key) {
+  getStringValue(key, lngKey = this.lngKey) {
     let STR = '';
     try {
-      if (this.lng_key) {
-        STR = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${this.lng_key}.js`)).STRING;
+      if (lngKey) {
+        STR = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${lngKey}.js`)).STRING;
         if (!STR[key])
-          STR = require(`../i18n/strings/string.${this.lng_key}.js`).STRING;
+          STR = require(`../i18n/strings/string.${lngKey}.js`).STRING;
       } else throw new Error('Fallback to default language');
     } catch (e) {
       STR = BASE_STRING_DEFAULT_LNG;

@@ -3,4 +3,4 @@ module.exports.ENC_MODE = {
   STRICT: "strict",
   OPTIONAL: "optional"
 };
-module.exports.ENABLED = 1;
+module.exports.ENC_ENABLED = 1;

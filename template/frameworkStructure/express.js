@@ -3,8 +3,12 @@ const express = require('express');
 const http = require('http');
 const multer = require('multer');
 const { Executor, sockets } = require("@njs2/base");
-/* External Package imports */
+// Import and load env files
+const BaseHelper = require('@njs2/base/helper/baseHelper.class');
+const baseHelper = new BaseHelper();
+baseHelper.loadConfig();
 
+/* External Package imports */
 const app = express();
 const upload = multer();
 const server = http.createServer(app);

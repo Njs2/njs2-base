@@ -24,7 +24,7 @@ class ParameterProcessor {
 
   validateParameters(param, requestData) {
     let responseObj = { error: null, value: null };
-    // Check Type of param
+    // Check Type of parameter
     let paramData = this.convertToGivenParameterType(param, requestData);
     if (!paramData) {
       responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
@@ -56,6 +56,7 @@ class ParameterProcessor {
         break;
 
       case "string":
+        if(!requestData) return false;
         res = requestData.toString();
         break;
 

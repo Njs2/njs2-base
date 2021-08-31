@@ -11,7 +11,7 @@ const requireDir = require('require-dir');
 const ParameterProcessor = require('./parameterProcessor.class');
 const dbManager = require("../helper/dbManager").dbManager;
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
-const { ENC_MODE, DEFAULT_LNG_KEY } = require('../helper/globalConstants');
+const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalConstants');
 const jwt = require('../helper/jwt');
 
 
@@ -30,12 +30,11 @@ class executor {
       // Initializng basic variables
       const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
       const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
-      if (ENCRYPTION_MODE == ENC_MODE.STRICT) {
+      if (ENCRYPTION_MODE == ENC_MODE.STRICT && encState != ENC_ENABLED) {
         this.setResponse('ENCRYPTION_STATE_STRICTLY_ENABLED');
         throw new Error();
       }
-      const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_MODE.ENABLED));
-      //TODO: If ENC_MODE is STRICT, check if enc_state is passed as 1 if not THROW error
+      const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_ENABLED));
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
       this.setMemberVariable('encryptionState', encryptionState);
 
@@ -96,13 +95,14 @@ class executor {
           requestData = JSON.parse(requestData);
       }
 
+      requestData = requestData ? requestData : {};
       for (let paramName in params) {
         let param = params[paramName];
         const parsedData = await parameterProcessor.processParameter(requestData[param.name]);
         const { error, value } = parameterProcessor.validateParameters(param, parsedData);
         if (error) {
           this.setResponse(error.errorCode, {
-            paramName: error.paramName
+            paramName: error.parameterName
           });
           throw new Error();
         }
@@ -265,15 +265,15 @@ class executor {
     this.responseMessage = msg;
   }
 
-  setResponse(responseCode, options) {
-    this.responseCode = responseCode;
+  setResponse(responseString, options) {
+    this.responseString = responseString;
     this.responseOptions = options;
     return true;
   }
 
   getResponse(responseString, responseOptions) {
     if (responseString) {
-      this.responseCode = responseString;
+      this.responseString = responseString;
       this.responseOptions = responseOptions;
     }
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
@@ -281,10 +281,10 @@ class executor {
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
-    if (!RESP[this.responseCode]) {
+    if (!RESP[this.responseString]) {
       RESP = RESP["RESPONSE_CODE_NOT_FOUND"];
     } else {
-      RESP = RESP[this.responseCode];
+      RESP = RESP[this.responseString];
     }
 
     this.responseCode = RESP.responseCode;
