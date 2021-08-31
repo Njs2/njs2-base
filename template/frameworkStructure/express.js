@@ -3,6 +3,7 @@ const express = require('express');
 const http = require('http');
 const multer = require('multer');
 const { Executor, sockets } = require("@njs2/base");
+
 // Import and load env files
 const BaseHelper = require('@njs2/base/helper/baseHelper.class');
 const baseHelper = new BaseHelper();
@@ -45,8 +46,8 @@ app.all("*", async (req, res) => {
   }
 
   const executor = new Executor();
-  await executor.executeRequest(executorReq);
-  return res.send(executor.getResponse());
+  const result = await executor.executeRequest(executorReq);
+  return res.send(result);
 });
 
 const { API_PORT } = process.env;

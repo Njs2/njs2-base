@@ -218,7 +218,10 @@ class executor {
   }
 
   isValidRequestMethod(httpMethod, requestMethod) {
-    if (httpMethod.toUpperCase() !== requestMethod.toUpperCase()) {
+    if (typeof requestMethod == "string" && httpMethod.toUpperCase() !== requestMethod.toUpperCase()) {
+      return false;
+    }
+    if (typeof requestMethod == "object" && !requestMethod.includes(httpMethod)) {
       return false;
     }
     return true;
