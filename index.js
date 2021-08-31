@@ -1,4 +1,4 @@
-module.exports.getSQLConnection = require("./package/dbConnect").getSQLConnection;
+module.exports.getSQLConnection = require("./helper/dbConnect").getSQLConnection;
 
 const pjson = require('./package.json');
 const { loadConfig } = require("./base/loadConfig");

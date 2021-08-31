@@ -1,5 +1,3 @@
-require('bytenode');
-require("@njs2/base/base/env");
 const Executor = require("@njs2/base/base/executor.class");
 const { sockets: njsWebsocket } = require('@njs2/base');
 

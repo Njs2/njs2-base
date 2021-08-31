@@ -1,4 +1,3 @@
-require('bytenode');
 module.exports.handler = async (event, user) => {
   try {
     const { sockets: njsWebsocket } = require('@njs2/base');

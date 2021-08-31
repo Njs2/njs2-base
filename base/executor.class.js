@@ -4,36 +4,36 @@ baseAction = require("./baseAction.class");
 basePkg = require("./basePackage.class");
 // TODO: move to global helper Static CLass which an be used everywhere
 glbvalue = require(path.join(process.cwd(), "src/global/index.js"));
-
-// TODO: refactor
-require("./env");
+const BaseHelper = require('../helper/baseHelper.class');
+baseHelper = new BaseHelper();
 
 const requireDir = require('require-dir');
-const { encrypt, decrypt } = require("./encryption");
 const ParameterProcessor = require('./parameterProcessor.class');
-const dbManager = require("../package/dbManager").dbManager;
+const dbManager = require("../helper/dbManager").dbManager;
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
-const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
-const ENC_MODE = require('../lib/constants')
-const jwt = require('../package/jwt');
+const { ENC_MODE, DEFAULT_LNG_KEY } = require('../helper/globalConstants');
+const jwt = require('../helper/jwt');
 
 
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class executor {
-
-  make call to baseHelper instance 
-
   constructor() {
     this.responseData = {};
+    baseHelper.loadConfig();
   }
 
   async executeRequest(request) {
-    
+
     try {
       this.setResponse('UNKNOWN_ERROR');
 
       // Initializng basic variables
       const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
+      const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
+      if (ENCRYPTION_MODE == ENC_MODE.STRICT) {
+        this.setResponse('ENCRYPTION_STATE_STRICTLY_ENABLED');
+        throw new Error();
+      }
       const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_MODE.ENABLED));
       //TODO: If ENC_MODE is STRICT, check if enc_state is passed as 1 if not THROW error
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
@@ -90,6 +90,7 @@ class executor {
       //TODO: file parsing : this.parseFile()
       // If encyption is enabled, then decrypt the request data
       if (!isFileExpected && encryptionState) {
+        const { decrypt } = require('./encryption');
         requestData = decrypt(requestData.data);
         if (typeof requestData === 'string')
           requestData = JSON.parse(requestData);
@@ -114,6 +115,7 @@ class executor {
       // OR: this.setResponse(responseString, responseOptions);
       const { responseCode, responseMessage } = this.getResponse(responseString, responseOptions);
       if (encryptionState) {
+        const { encrypt } = require("./encryption");
         this.responseData = encrypt(JSON.stringify(this.responseData));
       }
 
@@ -238,26 +240,10 @@ class executor {
     return fileExpected;
   }
 
-  parseRequestData(request, fileExists) {
-    let requestData = {};
-    //remove the request query/body parameters from request object
-    if (request.httpMethod == 'GET') {
-      requestData = request.queryStringParameters;
-    }
+  parseRequestData(request) {
+    let requestData = request.queryStringParameters || {};
 
-    if (request.httpMethod == 'POST') {
-      requestData = request.body;
-      if (typeof (request.body) == "string") {
-        // TODO: move to executor class
-        if (fileExists) {
-          const multipart = require('aws-multipart-parser');
-          requestData = multipart.parse(request, true);
-        } else {
-          const querystring = require('querystring');
-          requestData = querystring.parse(request.body);
-        }
-      }
-    }
+    Object.assign(requestData, request.body ? request.body : {});
 
     if (request.pathParameters) {
       Object.keys(request.pathParameters).map(key => {
@@ -290,18 +276,10 @@ class executor {
       this.responseCode = responseString;
       this.responseOptions = responseOptions;
     }
-    const BASE_RESPONSE_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${DEFAULT_LNG_KEY}.js`)).RESPONSE;
-    const PROJECT_RESPONSE_DEFAULT_LNG = require(`../lib/i18n/response/response.${DEFAULT_LNG_KEY}.js`).RESPONSE;
+    const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${DEFAULT_LNG_KEY}.js`)).RESPONSE;
+    const PROJECT_RESPONSE = require(`../lib/i18n/response/response.${DEFAULT_LNG_KEY}.js`).RESPONSE;
 
-    let RESP;
-    try {
-      if (this.lng_key) {
-        RESP = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${this.lng_key}.js`)).RESPONSE;
-        RESP = { ...RESP, ...require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE };
-      } else throw new Error('Fallback to default language');
-    } catch (e) {
-      RESP = { ...PROJECT_RESPONSE_DEFAULT_LNG, ...BASE_RESPONSE_DEFAULT_LNG };
-    }
+    let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
     if (!RESP[this.responseCode]) {
       RESP = RESP["RESPONSE_CODE_NOT_FOUND"];
@@ -310,7 +288,7 @@ class executor {
     }
 
     this.responseCode = RESP.responseCode;
-    this.responseMessage = RESP.responseMessage;
+    this.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key] ? RESP.responseMessage[this.lng_key] : RESP.responseMessage[DEFAULT_LNG_KEY];
 
     if (this.responseOptions)
       Object.keys(this.responseOptions).map(keyName => {

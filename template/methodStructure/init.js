@@ -5,7 +5,7 @@ class <method-name>Initalize extends baseInitialize {
     super();
     this.pkgInitializer =  {};
     this.pkgInitializer.isSecured = <is-secured>; // values: true/false
-    this.pkgInitializer.requestMethod = '<method-type>'; // requestMethod: GET/POST
+    this.pkgInitializer.requestMethod = ['<method-type>']; // requestMethod: GET/POST
   }
 
   getParameter() {

@@ -1,4 +1,4 @@
-const dbManager = require("@njs2/base/package/dbManager.js").dbManager;
+const dbManager = require("@njs2/base/helper/dbManager.js").dbManager;
 
 let roomLib = [];
 
