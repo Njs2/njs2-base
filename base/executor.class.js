@@ -276,8 +276,8 @@ class executor {
       this.responseCode = responseString;
       this.responseOptions = responseOptions;
     }
-    const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response/response.js`)).RESPONSE;
-    const PROJECT_RESPONSE = require(`../lib/i18n/response/response.js`).RESPONSE;
+    const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
+    const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
@@ -288,7 +288,9 @@ class executor {
     }
 
     this.responseCode = RESP.responseCode;
-    this.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key] ? RESP.responseMessage[this.lng_key] : RESP.responseMessage[DEFAULT_LNG_KEY];
+    this.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key]
+      ? RESP.responseMessage[this.lng_key]
+      : RESP.responseMessage[DEFAULT_LNG_KEY];
 
     if (this.responseOptions)
       Object.keys(this.responseOptions).map(keyName => {
