@@ -1,3 +1,8 @@
+// Import and load env files
+const AutoLoad = require('@njs2/base/base/autoload.class');
+AutoLoad.loadConfig();
+
+// Import Executor class
 const Executor = require("@njs2/base/base/executor.class");
 
 module.exports.execute = async event => {

@@ -9,12 +9,6 @@
   "SOCKET_PORT": 3001,
   "WSS_BASE_URL": "http://localhost:3001",
   "CMS_PORT": 3003,
-  "DATABASE_TYPE": "mysql",
-  "SQL_DB_HOST": "localhost",
-  "SQL_DB_NAME": "test",
-  "SQL_DB_PORT": 3306,
-  "SQL_DB_USER": "root",
-  "SQL_DB_PASSWORD": "password",
   "AUTH": {
     "AUTH_MODE": "JWT_DB",
     "JWT_SECRET": "123",

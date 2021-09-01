@@ -4,13 +4,12 @@ baseAction = require("./baseAction.class");
 basePkg = require("./basePackage.class");
 // TODO: move to global helper Static CLass which an be used everywhere
 glbvalue = require(path.join(process.cwd(), "src/global/index.js"));
-const BaseHelper = require('../helper/baseHelper.class');
-baseHelper = new BaseHelper();
 
 const requireDir = require('require-dir');
 const ParameterProcessor = require('./parameterProcessor.class');
 const dbManager = require("../helper/dbManager").dbManager;
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
+const { encrypt, decrypt } = require('./encryption');
 const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalConstants');
 const jwt = require('../helper/jwt');
 
@@ -30,6 +29,7 @@ class executor {
       // Initializng basic variables
       const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
       const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
+      // Enforce enc_state to be true if encryption is Strict
       if (ENCRYPTION_MODE == ENC_MODE.STRICT && encState != ENC_ENABLED) {
         this.setResponse('ENCRYPTION_STATE_STRICTLY_ENABLED');
         throw new Error();
@@ -87,9 +87,9 @@ class executor {
       const isFileExpected = this.isFileExpected(params);
       let requestData = this.parseRequestData(request, isFileExpected);
       //TODO: file parsing : this.parseFile()
+      // TODO: Type check for file
       // If encyption is enabled, then decrypt the request data
       if (!isFileExpected && encryptionState) {
-        const { decrypt } = require('./encryption');
         requestData = decrypt(requestData.data);
         if (typeof requestData === 'string')
           requestData = JSON.parse(requestData);
@@ -115,7 +115,6 @@ class executor {
       // OR: this.setResponse(responseString, responseOptions);
       const { responseCode, responseMessage } = this.getResponse(responseString, responseOptions);
       if (encryptionState) {
-        const { encrypt } = require("./encryption");
         this.responseData = encrypt(JSON.stringify(this.responseData));
       }
 
@@ -218,9 +217,9 @@ class executor {
   }
 
   isValidRequestMethod(httpMethod, requestMethod) {
-    if (typeof requestMethod == "string" && httpMethod.toUpperCase() !== requestMethod.toUpperCase()) {
-      return false;
-    }
+    // if (typeof requestMethod == "string" && httpMethod.toUpperCase() !== requestMethod.toUpperCase()) {
+    //   return false;
+    // }
     if (typeof requestMethod == "object" && !requestMethod.includes(httpMethod)) {
       return false;
     }

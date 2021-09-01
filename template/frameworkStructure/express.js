@@ -5,9 +5,8 @@ const multer = require('multer');
 const { Executor, sockets } = require("@njs2/base");
 
 // Import and load env files
-const BaseHelper = require('@njs2/base/helper/baseHelper.class');
-const baseHelper = new BaseHelper();
-baseHelper.loadConfig();
+const AutoLoad = require('@njs2/base/base/autoload.class');
+AutoLoad.loadConfig();
 
 /* External Package imports */
 const app = express();
