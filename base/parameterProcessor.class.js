@@ -56,11 +56,15 @@ class ParameterProcessor {
         break;
 
       case "string":
-        if(!requestData) return false;
+        if (!requestData) return false;
         res = requestData.toString();
         break;
 
       case "file":
+        // check if json has keys "type" = "file", "fileName", content and Content-Type
+        if (requestData.type != "file" || !requestData.fileName || !requestData.contentType || !requestData.content) {
+          return false;
+        }
         res = requestData;
         break;
 

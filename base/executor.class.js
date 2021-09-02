@@ -86,8 +86,6 @@ class executor {
       const params = initInstance.getParameter();
       const isFileExpected = this.isFileExpected(params);
       let requestData = this.parseRequestData(request, isFileExpected);
-      //TODO: file parsing : this.parseFile()
-      // TODO: Type check for file
       // If encyption is enabled, then decrypt the request data
       if (!isFileExpected && encryptionState) {
         requestData = decrypt(requestData.data);

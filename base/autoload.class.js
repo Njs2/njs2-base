@@ -1,21 +1,8 @@
 const path = require('path');
-let autoLoadInstance = null;
+dbManager = null;
+mongoManager = null;
 
 class autoLoad {
-
-
-  constructor() {
-    this.responseCode;
-    this.responseMessage;
-    this.requestData;
-  }
-
-  static getStaticInstance() {
-    if (autoLoadInstance == null) {
-      autoLoadInstance = new autoLoad()
-    }
-    return autoLoadInstance;
-  }
 
   static loadConfig() {
     const envConfig = require(path.join(process.cwd(), `/src/config/config.json`));
@@ -29,6 +16,22 @@ class autoLoad {
         }
       }
     }
+  };
+
+  static loadModules() {
+    const projectPackageJson = require(path.join(process.cwd(), `/package.json`));
+    projectPackageJson.dependencies.forEach((module) => {
+      if (module == '@njs2/sql') {
+        dbManager = require('@njs2/sql');
+      } else if (module == '@njs2/mongo') {
+        mongoManager = require('@njs2/mongo');
+      }
+    });
+
+    /* TODO: Load modules method(SQL, MONGO) */
+  };
+
+  static loadPackages() {
   };
 }
 

@@ -10,7 +10,7 @@
   "WSS_BASE_URL": "http://localhost:3001",
   "CMS_PORT": 3003,
   "AUTH": {
-    "AUTH_MODE": "JWT_DB",
+    "AUTH_MODE": "JWT",
     "JWT_SECRET": "123",
     "JWT_ID_KEY": "user_id",
     "DB_TABLE_NAME": "user",
