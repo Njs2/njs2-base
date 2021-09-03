@@ -11,16 +11,18 @@ class baseAction {
     this.responseOptions = {};
   }
 
-  setResponse(responseString, options) {
+  setResponse(responseString, options, packageName) {
     this.responseString = responseString;
     this.responseOptions = options;
+    this.packageName = packageName;
     return true;
   }
 
   getResponseString() {
     return {
       responseString: this.responseString,
-      responseOptions: this.responseOptions ? this.responseOptions : {}
+      responseOptions: this.responseOptions ? this.responseOptions : {},
+      packageName: this.packageName
     };
   }
 
@@ -30,12 +32,10 @@ class baseAction {
   }
 
   loadPkg(packageName) {
+    // TODO: configure folder name for package
     return require(path.resolve(
       process.cwd(),
-      `Njs2-modules/${packageName.indexOf("@") == 0
-        ? packageName.split("/").join("/methods/").substring(1)
-        : packageName
-      }`
+      `Njs2-modules/${packageName.split("/").join("/methods/").substring(1)}`
     ))();
   }
   // TODO: revisit later to reposition this function/responsibilities

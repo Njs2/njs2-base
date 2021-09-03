@@ -1,4 +1,6 @@
 const path = require("path");
+
+// TODO: revisit global imports
 baseInitialize = require('./baseInitialize.class');
 baseAction = require("./baseAction.class");
 basePkg = require("./basePackage.class");
@@ -109,9 +111,9 @@ class executor {
 
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
-      const { responseString, responseOptions } = actionInstance.getResponseString();
+      const { responseString, responseOptions, packageName } = actionInstance.getResponseString();
       // OR: this.setResponse(responseString, responseOptions);
-      const { responseCode, responseMessage } = this.getResponse(responseString, responseOptions);
+      const { responseCode, responseMessage } = this.getResponse(responseString, responseOptions, packageName);
       if (encryptionState) {
         this.responseData = encrypt(JSON.stringify(this.responseData));
       }
@@ -271,7 +273,7 @@ class executor {
     return true;
   }
 
-  getResponse(responseString, responseOptions) {
+  getResponse(responseString, responseOptions, packageName) {
     if (responseString) {
       this.responseString = responseString;
       this.responseOptions = responseOptions;
@@ -280,6 +282,14 @@ class executor {
     const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
+
+    if (packageName) {
+      try {
+        const PACKAGE_RESPONSE = require(path.resolve(process.cwd(), `/${packageName}/contract/response.json`));
+        RESP = { ...RESP, ...PACKAGE_RESPONSE };
+      } catch {
+      }
+    }
 
     if (!RESP[this.responseString]) {
       RESP = RESP["RESPONSE_CODE_NOT_FOUND"];

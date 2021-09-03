@@ -1,6 +1,6 @@
 const path = require('path');
-dbManager = null;
-mongoManager = null;
+SQLManager = null;
+MongoManager = null;
 
 class autoLoad {
 
@@ -22,9 +22,9 @@ class autoLoad {
     const projectPackageJson = require(path.join(process.cwd(), `/package.json`));
     projectPackageJson.dependencies.forEach((module) => {
       if (module == '@njs2/sql') {
-        dbManager = require('@njs2/sql');
+        SQLManager = require('@njs2/sql');
       } else if (module == '@njs2/mongo') {
-        mongoManager = require('@njs2/mongo');
+        MongoManager = require('@njs2/mongo');
       }
     });
 
