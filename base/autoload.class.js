@@ -20,19 +20,20 @@ class autoLoad {
 
   static loadModules() {
     const projectPackageJson = require(path.join(process.cwd(), `/package.json`));
-    projectPackageJson.dependencies.forEach((module) => {
+    Object.keys(projectPackageJson.dependencies).forEach((module) => {
       if (module == '@njs2/sql') {
         SQLManager = require('@njs2/sql');
       } else if (module == '@njs2/mongo') {
         MongoManager = require('@njs2/mongo');
       }
     });
-
-    /* TODO: Load modules method(SQL, MONGO) */
   };
 
-  static loadPackages() {
-  };
+  static loadSqlLibray(sqlLibraryList) {
+    return sqlLibraryList.map(sqlLibrary => {
+      return require(path.resolve(process.cwd(), `src/library/databaseLib/${sqlLibrary}.lib.js`));
+    });
+  }
 }
 
 module.exports = autoLoad;

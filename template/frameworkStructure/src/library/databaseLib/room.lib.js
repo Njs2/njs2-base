@@ -1,25 +1,24 @@
-const dbManager = require("@njs2/base/helper/dbManager.js").dbManager;
+const tableName = "room";
+class roomLib {
+  static async getRoomDetails(roomId) {
+    return await SQLManager.find(tableName, { roomId: roomId, status: 2 })[0];
+  }
 
-let roomLib = [];
+  static async getRoomList(query) {
+    return await SQLManager.find(tableName, query);
+  }
 
-roomLib.getRoomDetails = async (roomId) => {
-  return await dbManager.find('room', { roomId: roomId, status: 2 })[0];
-}
+  static async updateRooms(query, updates) {
+    return await SQLManager.update(tableName, query, updates);
+  }
 
-roomLib.getRoomList = async (query) => {
-  return await dbManager.find('room', query);
-}
+  static async create(roomObj) {
+    return await SQLManager.insert(tableName, roomObj);
+  }
 
-roomLib.updateRooms = async (query, updates) => {
-  return await dbManager.update('room', query, updates);
-}
-
-roomLib.create = async (roomObj) => {
-  return await dbManager.insert('room', roomObj);
-}
-
-roomLib.getCustomRoom = async (type) => {
-  return await dbManager.doExecuteRawQuery('room', 'SELECT * FROM room WHERE type = ?', [type]);
+  static async getCustomRoom(type) {
+    return await SQLManager.doExecuteRawQuery(tableName, `SELECT * FROM ${tableName} WHERE type = ?`, [type]);
+  }
 }
 
 module.exports = roomLib;
