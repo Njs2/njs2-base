@@ -4,7 +4,8 @@ const path = require("path");
 baseInitialize = require('./baseInitialize.class');
 baseAction = require("./baseAction.class");
 basePkg = require("./basePackage.class");
-// TODO: move to global helper Static CLass which an be used everywhere
+baseHelper = require("../helper/baseHelper.class");
+// TODO: move to global helper Static CLass which can be used everywhere
 glbvalue = require(path.join(process.cwd(), "src/global/index.js"));
 
 const requireDir = require('require-dir');
@@ -20,7 +21,6 @@ const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class executor {
   constructor() {
     this.responseData = {};
-    baseHelper.loadConfig();
   }
 
   async executeRequest(request) {
