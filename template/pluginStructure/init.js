@@ -11,7 +11,7 @@ class <method-name>Initalize extends baseInitialize {
     const param = {
     };
 
-    return { ...this.pkgInitializer.initParams, ...param };
+    return { ...this.pkgInitializer.param, ...param };
   }
 }
 

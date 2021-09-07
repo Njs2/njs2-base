@@ -2,12 +2,12 @@
 const express = require('express');
 const http = require('http');
 const multer = require('multer');
-const { Executor, sockets } = require("@njs2/base");
 
-// Import and load env files
 AutoLoad = require('@njs2/base/base/autoload.class');
 AutoLoad.loadConfig();
 AutoLoad.loadModules();
+
+const { Executor, sockets } = require("@njs2/base");
 
 /* External Package imports */
 const app = express();
