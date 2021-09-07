@@ -10,7 +10,6 @@ glbvalue = require(path.join(process.cwd(), "src/global/index.js"));
 
 const requireDir = require('require-dir');
 const ParameterProcessor = require('./parameterProcessor.class');
-const dbManager = require("../helper/dbManager").dbManager;
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
 const { encrypt, decrypt } = require('./encryption');
 const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalConstants');
@@ -200,7 +199,7 @@ class executor {
     }
 
     if (AUTH_MODE == "JWT_DB") {
-      const verifedUser = await dbManager.find(DB_TABLE_NAME, { [DB_ACCESS_KEY]: accessToken, [DB_ID_KEY]: decodedVal[JWT_ID_KEY] });
+      const verifedUser = await SQLManager.find(DB_TABLE_NAME, { [DB_ACCESS_KEY]: accessToken, [DB_ID_KEY]: decodedVal[JWT_ID_KEY] });
       if (verifedUser.length > 0) {
         validationResponse.data = verifedUser[0];
         return validationResponse;

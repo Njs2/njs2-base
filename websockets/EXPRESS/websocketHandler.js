@@ -1,5 +1,3 @@
-const dbManager = require("../../helper/dbManager").dbManager;
-
 const connect = async (accessToken, socketId) => {
   return { code: 200, body: {} };
 }
