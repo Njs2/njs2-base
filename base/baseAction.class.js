@@ -2,7 +2,7 @@ const { DEFAULT_LNG_KEY } = require("../helper/globalConstants");
 const path = require("path");
 const BASE_STRING_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${DEFAULT_LNG_KEY}.js`)).STRING;
 const PROJECT_STRING_DEFAULT_LNG = require(`../i18n/strings/string.${DEFAULT_LNG_KEY}.js`).STRING;
-
+require('bytenode');
 class baseAction {
 
   //TODO: Check the member variable
@@ -33,9 +33,10 @@ class baseAction {
 
   loadPkg(packageName) {
     // TODO: configure folder name for package
+    let packageVals = packageName.split('/');
     return require(path.resolve(
       process.cwd(),
-      `Njs2-modules/${packageName.split("/").join("/methods/").substring(1)}`
+      `Njs2-modules/${[...packageVals.slice(0, packageVals.length - 1),  "methods",...packageVals.slice(packageVals.length - 1)].join('/')}/index`
     ))();
   }
   // TODO: revisit later to reposition this function/responsibilities

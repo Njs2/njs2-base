@@ -2,7 +2,8 @@ const path = require('path');
 class baseInitialize {
 
   loadIntializer(packageName) {
-    return require(path.resolve(process.cwd(), `Njs2-modules/${packageName.indexOf('@') == 0 ? packageName.split('/').join('/methods/').substring(1) : packageName}/params.json`));
+    let packageVals = packageName.split('/');
+    return require(path.resolve(process.cwd(), `Njs2-modules/${[...packageVals.slice(0, packageVals.length - 1),  "methods",...packageVals.slice(packageVals.length - 1)].join('/')}/params.json`));
   }
 }
 
