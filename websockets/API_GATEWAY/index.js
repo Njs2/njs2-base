@@ -1,10 +1,11 @@
 const AWS = require('aws-sdk');
 const pjson = require('../../package.json');
-const { loadConfig } = require("../../base/loadConfig");
-const {
+const baseHelper = require('../../helper/baseHelper.class');
+
+const [
   WSS_BASE_URL,
   USE_LAMBDA_ROLE
-} = loadConfig(["WSS_BASE_URL", "USE_LAMBDA_ROLE"], pjson.name);
+] = baseHelper.loadConfig(["WSS_BASE_URL", "USE_LAMBDA_ROLE"], pjson.name);
 const websocketHelper = require("./websocketHelper");
 
 const emit = async (connectionId, payload) => {

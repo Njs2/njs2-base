@@ -1,12 +1,12 @@
 const pjson = require('../../package.json');
-const { loadConfig } = require("../../base/loadConfig");
+const baseHelper = require('@njs2/base/helper/baseHelper.class');
 
-const {
+const [
   AWS_REGION,
   AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY_ID,
   AWS_ROLE_ARN
-} = loadConfig(["AWS_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY_ID", "AWS_ROLE_ARN"], pjson.name);
+] = baseHelper.loadConfig(["AWS_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY_ID", "AWS_ROLE_ARN"], pjson.name);
 
 
 const websocketHelper = {};

@@ -1,10 +1,8 @@
-module.exports.getSQLConnection = require("./helper/dbConnect").getSQLConnection;
-
 const pjson = require('./package.json');
-const { loadConfig } = require("./base/loadConfig");
-const {
+const baseHelepr = require('./helper/baseHelper.class');
+const [
   SOCKET_SYSTEM_TYPE
-} = loadConfig(["SOCKET_SYSTEM_TYPE"], pjson.name);
+] = baseHelepr.loadConfig(["SOCKET_SYSTEM_TYPE"], pjson.name);
 const SOCKET_SYSTEM = {
   "API_GATEWAY": {
     emit: require('./websockets/API_GATEWAY/index').emit,

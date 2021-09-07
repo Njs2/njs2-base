@@ -1,9 +1,9 @@
 const pjson = require('../../package.json');
-const { loadConfig } = require("../../base/loadConfig");
+const baseHelepr = require('../../helper/baseHelper.class');
 const path = require('path');
-const {
+const [
   SOCKET_PORT
-} = loadConfig(["SOCKET_PORT"], pjson.name);
+] = baseHelepr.loadConfig(["SOCKET_PORT"], pjson.name);
 
 const io = require("socket.io")({
   serveClient: false,
