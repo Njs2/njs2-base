@@ -19,7 +19,7 @@ custom:
 
 functions:
   api:
-    handler: serverless.execute
+    handler: lambda.execute
     events:
      - http:
          path: /{proxy+}
@@ -27,19 +27,19 @@ functions:
          cors: true
 
   connectHandler:
-    handler: listener.connectHandler
+    handler: lambda.execute
     events:
       - websocket: 
           route: $connect
 
   disconnectHandler:
-    handler: listener.disconnectHandler
+    handler: lambda.execute
     events:
       - websocket:
           route: $disconnect
 
   defaultSocket:
-    handler: listener.sockets
+    handler: lambda.execute
     events:
       - websocket:
           route: $default

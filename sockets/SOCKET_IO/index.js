@@ -1,10 +1,4 @@
-const pjson = require('../../package.json');
-const baseHelepr = require('../../helper/baseHelper.class');
 const path = require('path');
-const [
-  SOCKET_PORT
-] = baseHelepr.loadConfig(["SOCKET_PORT"], pjson.name);
-
 const io = require("socket.io")({
   serveClient: false,
   transports: ['websocket'],
@@ -28,7 +22,7 @@ const init = () => {
     console.log('Socket connected :: ', id);
     socket.on('message', function (msg) {
       const message = typeof msg == "string" ? JSON.parse(msg) : msg;
-      require(path.resolve(process.cwd(), 'listener.js')).sockets({
+      require(path.resolve(process.cwd(), 'socket.io.js')).socketsHandler({
         requestContext: {
           connectionId: id
         },
@@ -40,7 +34,7 @@ const init = () => {
       console.log('Socket Closing :: ', id);
 
       // Invoke disconnect handler from project
-      require(path.resolve(process.cwd(), 'listener.js')).disconnectHandler({
+      require(path.resolve(process.cwd(), 'socket.io.js')).disconnectHandler({
         requestContext: {
           connectionId: id
         }
@@ -48,15 +42,15 @@ const init = () => {
     });
 
     // Invoke connection handler from project
-    require(path.resolve(process.cwd(), 'listener.js')).connectHandler({
+    require(path.resolve(process.cwd(), 'socket.io.js')).connectHandler({
       requestContext: {
         connectionId: id
       }
     });
   });
 
-  server.listen(SOCKET_PORT, () => {
-    console.log("Socket server started at port: ", SOCKET_PORT);
+  server.listen(process.env.SOCKET_PORT, () => {
+    console.log("Socket server started at port: ", process.env.SOCKET_PORT);
   });
 }
 

@@ -18,4 +18,7 @@ constant.PENDING = 6;
 
 constant.EMAIL_VERIFICATION_MAX_TIME_SECONDS = 10 * 60;
 
+constant.CONNECTION_HANDLER_METHOD = null;
+constant.DISCONNECTION_HANDLER_METHOD = null;
+
 module.exports = constant;

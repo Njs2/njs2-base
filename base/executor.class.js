@@ -284,7 +284,8 @@ class executor {
 
     if (packageName) {
       try {
-        const PACKAGE_RESPONSE = require(path.resolve(process.cwd(), `/${packageName}/contract/response.json`));
+        let packageVals = packageName.split('/');
+        const PACKAGE_RESPONSE = require(path.resolve(process.cwd(), `Njs2-modules/${[...packageVals.slice(0, packageVals.length - 1)].join('/')}/contract/response.json`));
         RESP = { ...RESP, ...PACKAGE_RESPONSE };
       } catch {
       }

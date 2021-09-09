@@ -26,20 +26,20 @@ class ParameterProcessor {
     let responseObj = { error: null, value: null };
     // Check Type of parameter
     let paramData = this.convertToGivenParameterType(param, requestData);
-    if (!paramData) {
-      responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
-      return responseObj;
-    }
+    // if (!paramData) {
+    //   responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
+    //   return responseObj;
+    // }
 
     //Check if param is declared as Mandatory or Optional in InitClass
     let validatedData = this.verifyRequiredParameter(param, paramData);
-    if (!validatedData) {
+    if (validatedData.error) {
       responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
       return responseObj;
     }
 
     //Set Default value to param when it is Optional
-    responseObj.value = this.setDefaultParameters(param, validatedData);
+    responseObj.value = this.setDefaultParameters(param, validatedData.data);
     return responseObj;
   }
 
@@ -93,10 +93,10 @@ class ParameterProcessor {
   verifyRequiredParameter(paramData, requestData) {
     //checks if the paramater is given in request by user
     if (paramData.required && ((typeof (requestData) == "string" && requestData.trim() == "") || (typeof (requestData) == "number" && isNaN(requestData)))) {
-      return false;
+      return { error: true };
     }
 
-    return requestData;
+    return { error: false, data: requestData };
   }
 }
 

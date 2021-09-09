@@ -7,7 +7,7 @@ AutoLoad = require('@njs2/base/base/autoload.class');
 AutoLoad.loadConfig();
 AutoLoad.loadModules();
 
-const { Executor, sockets } = require("@njs2/base");
+const { Executor } = require("@njs2/base");
 
 /* External Package imports */
 const app = express();
@@ -55,5 +55,3 @@ const { API_PORT } = process.env;
 server.listen(API_PORT, () => {
   console.log(`App listening on port ${API_PORT}`);
 });
-
-sockets.init();

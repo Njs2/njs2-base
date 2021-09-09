@@ -40,9 +40,10 @@ class baseAction {
     ))();
   }
   // TODO: revisit later to reposition this function/responsibilities
+  // TODO: Read response from packages
   getResponseList() {
-    const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response/response.js`)).RESPONSE;
-    const PROJECT_RESPONSE = require(`../lib/i18n/response/response.js`).RESPONSE;
+    const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
+    const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
