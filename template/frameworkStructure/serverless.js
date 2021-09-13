@@ -1,6 +1,7 @@
 // Import and load env files
 const AutoLoad = require('@njs2/base/base/autoload.class');
 AutoLoad.loadConfig();
+AutoLoad.loadModules();
 
 // Import Executor class
 const Executor = require("@njs2/base/base/executor.class");

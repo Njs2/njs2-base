@@ -3,9 +3,7 @@ AutoLoad.loadConfig();
 AutoLoad.loadModules();
 
 const { Executor, sockets } = require("@njs2/base");
-
-const njsWebsocket = sockets['SOCKET_IO'];
-njsWebsocket.init();
+sockets['SOCKET_IO'].init();
 
 const { CONNECTION_HANDLER_METHOD, DISCONNECTION_HANDLER_METHOD } = require('./src/global/constants');
 
@@ -26,7 +24,7 @@ module.exports.connectHandler = async (event) => {
       proxy: CONNECTION_HANDLER_METHOD
     };
 
-    await executeRequests(event.requestContext.connectionId, wsEvent);
+    if (CONNECTION_HANDLER_METHOD) await executeRequests(event.requestContext.connectionId, wsEvent);
     return { code: 200, body: {} };
   } catch (e) {
     console.log(e);
@@ -45,7 +43,7 @@ module.exports.disconnectHandler = async (event) => {
       proxy: DISCONNECTION_HANDLER_METHOD
     };
 
-    await executeRequests(event.requestContext.connectionId, wsEvent);
+    if (DISCONNECTION_HANDLER_METHOD) await executeRequests(event.requestContext.connectionId, wsEvent);
     return { code: 200, body: {} };
   } catch (e) {
     console.log(e);

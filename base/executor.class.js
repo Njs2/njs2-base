@@ -5,8 +5,6 @@ baseInitialize = require('./baseInitialize.class');
 baseAction = require("./baseAction.class");
 basePkg = require("./basePackage.class");
 baseHelper = require("../helper/baseHelper.class");
-// TODO: move to global helper Static CLass which can be used everywhere
-glbvalue = require(path.join(process.cwd(), "src/global/index.js"));
 
 const requireDir = require('require-dir');
 const ParameterProcessor = require('./parameterProcessor.class');
@@ -285,7 +283,7 @@ class executor {
     if (packageName) {
       try {
         let packageVals = packageName.split('/');
-        const PACKAGE_RESPONSE = require(path.resolve(process.cwd(), `Njs2-modules/${[...packageVals.slice(0, packageVals.length - 1)].join('/')}/contract/response.json`));
+        const PACKAGE_RESPONSE = require(path.resolve(process.cwd(), `njs2_modules/${[...packageVals.slice(0, packageVals.length - 1)].join('/')}/contract/response.json`));
         RESP = { ...RESP, ...PACKAGE_RESPONSE };
       } catch {
       }

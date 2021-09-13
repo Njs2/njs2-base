@@ -3,6 +3,7 @@ const SOCKET_SYSTEM = {
     emit: require('./sockets/API_GATEWAY/index').emit
   },
   "SOCKET_IO": {
+    init: require('./sockets/SOCKET_IO/index').init,
     emit: require('./sockets/SOCKET_IO/index').emit
   }
 };

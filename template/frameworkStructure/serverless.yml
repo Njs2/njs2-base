@@ -16,30 +16,32 @@ custom:
   prune:
     automatic: true
     number: 1
+  stageVariables:
+    requestType: "API"
 
 functions:
   api:
-    handler: lambda.execute
+    handler: lambda.handler
     events:
-     - http:
-         path: /{proxy+}
-         method: ANY
-         cors: true
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
 
   connectHandler:
-    handler: lambda.execute
+    handler: websockets.connectHandler
     events:
-      - websocket: 
+      - websocket:
           route: $connect
 
   disconnectHandler:
-    handler: lambda.execute
+    handler: websockets.disconnectHandler
     events:
       - websocket:
           route: $disconnect
 
   defaultSocket:
-    handler: lambda.execute
+    handler: websockets.socketsHandler
     events:
       - websocket:
           route: $default
@@ -47,7 +49,7 @@ functions:
   postman:
     handler: postman.execute
     events:
-     - http:
-         path: /postman
-         method: ANY
-         cors: true
+      - http:
+          path: /postman
+          method: ANY
+          cors: true

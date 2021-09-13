@@ -1,10 +1,12 @@
 // Import and load env files
-const AutoLoad = require('@njs2/base/base/autoload.class');
+AutoLoad = require('@njs2/base/base/autoload.class');
 AutoLoad.loadConfig();
+AutoLoad.loadModules();
 
 // Import Executor class
 const Executor = require("@njs2/base/base/executor.class");
-const { sockets: njsWebsocket } = require('@njs2/base');
+const { sockets } = require('@njs2/base');
+const njsWebsocket = sockets['API_GATEWAY'];
 const { CONNECTION_HANDLER_METHOD, DISCONNECTION_HANDLER_METHOD } = require('./src/global/constants');
 
 const executeRequests = async (connectionId, wsEvent, request_id) => {
@@ -24,7 +26,7 @@ module.exports.connectHandler = async (event) => {
       proxy: CONNECTION_HANDLER_METHOD
     };
 
-    await executeRequests(event.requestContext.connectionId, wsEvent);
+    if (CONNECTION_HANDLER_METHOD) await executeRequests(event.requestContext.connectionId, wsEvent);
     return { code: 200, body: {} };
   } catch (e) {
     console.log(e);
@@ -43,7 +45,7 @@ module.exports.disconnectHandler = async (event) => {
       proxy: DISCONNECTION_HANDLER_METHOD
     };
 
-    await executeRequests(event.requestContext.connectionId, wsEvent);
+    if (DISCONNECTION_HANDLER_METHOD) await executeRequests(event.requestContext.connectionId, wsEvent);
     return { code: 200, body: {} };
   } catch (e) {
     console.log(e);

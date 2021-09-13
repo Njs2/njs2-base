@@ -32,11 +32,10 @@ class baseAction {
   }
 
   loadPkg(packageName) {
-    // TODO: configure folder name for package
     let packageVals = packageName.split('/');
     return require(path.resolve(
       process.cwd(),
-      `Njs2-modules/${[...packageVals.slice(0, packageVals.length - 1),  "methods",...packageVals.slice(packageVals.length - 1)].join('/')}/index`
+      `njs2_modules/${[...packageVals.slice(0, packageVals.length - 1), "methods", ...packageVals.slice(packageVals.length - 1)].join('/')}/index`
     ))();
   }
   // TODO: revisit later to reposition this function/responsibilities

@@ -1,9 +1,12 @@
 const path = require('path');
 SQLManager = null;
 MongoManager = null;
+// TODO: Naming convention
+GLB = null;
 
 class autoLoad {
 
+  // TODO: Naming convention
   static loadConfig() {
     const envConfig = require(path.join(process.cwd(), `/src/config/config.json`));
 
@@ -16,6 +19,8 @@ class autoLoad {
         }
       }
     }
+
+    GLB = require(path.join(process.cwd(), "src/global/index.js"));
   };
 
   static loadModules() {
@@ -29,9 +34,16 @@ class autoLoad {
     });
   };
 
+  // TODO: Load public packages to be called from the action.js
+  static loadModules(moduleList = []) {
+    return moduleList.map(module => {
+      return module;
+    });
+  };
+
   static loadSqlLibray(sqlLibraryList) {
     return sqlLibraryList.map(sqlLibrary => {
-      return require(path.resolve(process.cwd(), `src/library/databaseLib/${sqlLibrary}.lib.js`));
+      return require(path.resolve(process.cwd(), `src/library/sqlLib/${sqlLibrary}.lib.js`));
     });
   }
 }
