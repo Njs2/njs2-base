@@ -23,7 +23,14 @@ class autoLoad {
     GLB = require(path.join(process.cwd(), "src/global/index.js"));
   };
 
-  static loadModules() {
+  static loadModules(moduleList = []) {
+    // TODO: Load public packages to be called from the action.js
+    if (moduleList.length) {
+      return moduleList.map(module => {
+        return module;
+      });
+    }
+
     const projectPackageJson = require(path.join(process.cwd(), `/package.json`));
     Object.keys(projectPackageJson.dependencies).forEach((module) => {
       if (module == '@njs2/sql') {
@@ -31,13 +38,6 @@ class autoLoad {
       } else if (module == '@njs2/mongo') {
         MongoManager = require('@njs2/mongo');
       }
-    });
-  };
-
-  // TODO: Load public packages to be called from the action.js
-  static loadModules(moduleList = []) {
-    return moduleList.map(module => {
-      return module;
     });
   };
 

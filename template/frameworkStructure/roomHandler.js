@@ -9,7 +9,7 @@ module.exports.handler = () => {
           const AWS = require('aws-sdk');
           // Call lambda function for room init
           // Call lambda with room id in payload
-          const Lambda = new AWS.Lambda(credentials);
+          const Lambda = new AWS.Lambda({});
           const result = await Lambda.invoke({
             FunctionName: `serverless-framework-index`,
             InvocationType: "RequestResponse",

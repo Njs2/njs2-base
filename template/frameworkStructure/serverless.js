@@ -1,7 +1,7 @@
 // Import and load env files
-const AutoLoad = require('@njs2/base/base/autoload.class');
-AutoLoad.loadConfig();
-AutoLoad.loadModules();
+AutoLoad = require('@njs2/base/base/autoload.class'); // eslint-disable-line no-undef
+AutoLoad.loadConfig(); // eslint-disable-line no-undef
+AutoLoad.loadModules(); // eslint-disable-line no-undef
 
 // Import Executor class
 const Executor = require("@njs2/base/base/executor.class");
