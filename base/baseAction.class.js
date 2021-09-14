@@ -48,8 +48,9 @@ class baseAction {
     let RESP = [...Object.values(PROJECT_RESPONSE), ...Object.values(BASE_RESPONSE)];
     const packageJson = require(path.resolve(process.cwd(), 'package.json'));
     Object.keys(packageJson.dependencies).map(pkg => {
-      if (fs.existsSync(path.resolve(process.cwd(), `njs2_modules/${pkg}/i18n/response.json`))) {
-        const pkgPath = path.resolve(process.cwd(), `njs2_modules/${pkg}/i18n/response.json`);
+      console.log(path.resolve(process.cwd(), `njs2_modules/${pkg}/contract/response.json`));
+      if (fs.existsSync(path.resolve(process.cwd(), `njs2_modules/${pkg}/contract/response.json`))) {
+        const pkgPath = path.resolve(process.cwd(), `njs2_modules/${pkg}/contract/response.json`);
         const pkgResponse = require(pkgPath);
         RESP = [...RESP, ...Object.values(pkgResponse)];
       }

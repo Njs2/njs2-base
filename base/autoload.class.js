@@ -24,7 +24,7 @@ class autoLoad {
   };
 
   static loadModules(moduleList = []) {
-    // TODO: Load public packages to be called from the action.js
+    // Load public packages to be called from the action.js
     if (moduleList.length) {
       return moduleList.map(module => {
         return module;
