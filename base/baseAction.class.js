@@ -1,5 +1,6 @@
 const { DEFAULT_LNG_KEY } = require("../helper/globalConstants");
 const path = require("path");
+const fs = require("fs");
 const BASE_STRING_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${DEFAULT_LNG_KEY}.js`)).STRING;
 const PROJECT_STRING_DEFAULT_LNG = require(`../i18n/strings/string.${DEFAULT_LNG_KEY}.js`).STRING;
 require('bytenode');
@@ -38,16 +39,25 @@ class baseAction {
       `njs2_modules/${[...packageVals.slice(0, packageVals.length - 1), "methods", ...packageVals.slice(packageVals.length - 1)].join('/')}/index`
     ))();
   }
+
   // TODO: revisit later to reposition this function/responsibilities
-  // TODO: Read response from packages
   getResponseList() {
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
     const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
 
-    let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
+    let RESP = [...Object.values(PROJECT_RESPONSE), ...Object.values(BASE_RESPONSE)];
+    const packageJson = require(path.resolve(process.cwd(), 'package.json'));
+    Object.keys(packageJson.dependencies).map(pkg => {
+      if (fs.existsSync(path.resolve(process.cwd(), `njs2_modules/${pkg}/i18n/response.json`))) {
+        const pkgPath = path.resolve(process.cwd(), `njs2_modules/${pkg}/i18n/response.json`);
+        const pkgResponse = require(pkgPath);
+        RESP = [...RESP, ...Object.values(pkgResponse)];
+      }
+    });
 
-    return Object.keys(RESP).map(res => RESP[res]);
+    return RESP;
   }
+
   // TODO: revisit later to reposition this function/responsibilities
   getStringValue(key, lngKey = this.lngKey) {
     let STR = '';
