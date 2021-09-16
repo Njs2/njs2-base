@@ -6,7 +6,7 @@ AutoLoad.loadModules(); // eslint-disable-line no-undef
 // Import Executor class
 const Executor = require("@njs2/base/base/executor.class");
 const { sockets } = require('@njs2/base');
-const njsWebsocket = sockets['API_GATEWAY'];
+const njsWebsocket = sockets;
 const { CONNECTION_HANDLER_METHOD, DISCONNECTION_HANDLER_METHOD } = require('./src/global/constants');
 
 const executeRequests = async (connectionId, wsEvent, request_id) => {

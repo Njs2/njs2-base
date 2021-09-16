@@ -1,3 +1,9 @@
+const pjson = require('./package.json');
+const baseHelepr = require('./helper/baseHelper.class');
+const [
+  SOCKET_SYSTEM_TYPE
+] = baseHelepr.loadConfig(["SOCKET_SYSTEM_TYPE"], pjson.name);
+
 const SOCKET_SYSTEM = {
   "API_GATEWAY": {
     emit: require('./sockets/API_GATEWAY/index').emit
@@ -8,5 +14,5 @@ const SOCKET_SYSTEM = {
   }
 };
 
-module.exports.sockets = SOCKET_SYSTEM;
+module.exports.sockets = SOCKET_SYSTEM[SOCKET_SYSTEM_TYPE];
 module.exports.Executor = require('./base/executor.class');

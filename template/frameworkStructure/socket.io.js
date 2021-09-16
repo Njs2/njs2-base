@@ -3,7 +3,7 @@ AutoLoad.loadConfig(); // eslint-disable-line no-undef
 AutoLoad.loadModules(); // eslint-disable-line no-undef
 
 const { Executor, sockets } = require("@njs2/base");
-const njsWebsocket = sockets['SOCKET_IO'];
+const njsWebsocket = sockets;
 njsWebsocket.init();
 
 const { CONNECTION_HANDLER_METHOD, DISCONNECTION_HANDLER_METHOD } = require('./src/global/constants');
