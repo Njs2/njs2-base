@@ -50,8 +50,9 @@ app.all("*", async (req, res) => {
   return res.send(result);
 });
 
-const { API_PORT } = process.env;
+const { API_PORT, API_ENDPOINT } = process.env;
 // Start the server
 server.listen(API_PORT, () => {
   console.log(`App listening on port ${API_PORT}`);
+  console.log(`Postman endpoint: ${API_ENDPOINT}/postman`);
 });
