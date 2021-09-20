@@ -9,6 +9,11 @@
   "parserOptions": {
     "ecmaVersion": 12
   },
+  "globals": {
+    "SQLManager": true,
+    "MongoManager": true,
+    "GLB": true
+  },
   "rules": {
     "no-comma-dangle": 0, // disallow trailing commas in object literals
     "no-cond-assign": 0, // disallow assignment in conditional expressions
