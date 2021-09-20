@@ -3,9 +3,9 @@ const express = require('express');
 const http = require('http');
 const multer = require('multer');
 
-AutoLoad = require('@njs2/base/base/autoload.class'); // eslint-disable-line no-undef
-AutoLoad.loadConfig(); // eslint-disable-line no-undef
-AutoLoad.loadModules(); // eslint-disable-line no-undef
+AutoLoad = require('@njs2/base/base/autoload.class');
+AutoLoad.loadConfig();
+AutoLoad.loadModules();
 
 const { Executor } = require("@njs2/base");
 
