@@ -196,7 +196,7 @@ class executor {
       return validationResponse;
     }
 
-    if (AUTH_MODE == "JWT_DB") {
+    if (AUTH_MODE == "JWT_SQL") {
       const verifedUser = await SQLManager.find(DB_TABLE_NAME, { [DB_ACCESS_KEY]: accessToken, [DB_ID_KEY]: decodedVal[JWT_ID_KEY] });
       if (verifedUser.length > 0) {
         validationResponse.data = verifedUser[0];
@@ -207,6 +207,8 @@ class executor {
       return validationResponse;
     }
 
+    validationResponse.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: 'access_token' };
+    return validationResponse;
   }
 
   capitalizeFirstLetter(string) {
