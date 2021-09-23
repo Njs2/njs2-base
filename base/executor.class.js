@@ -4,17 +4,15 @@ const path = require("path");
 baseInitialize = require('./baseInitialize.class');
 baseAction = require("./baseAction.class");
 basePkg = require("./basePackage.class");
-baseHelper = require("../helper/baseHelper.class");
+globalMethods = require("../helper/globalMethods");
 
-const requireDir = require('require-dir');
+const baseHelper = require("../helper/baseHelper.class");
 const ParameterProcessor = require('./parameterProcessor.class');
-const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
-const { encrypt, decrypt } = require('./encryption');
+const { encrypt, decrypt } = require('../helper/encryption');
 const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalConstants');
 const jwt = require('../helper/jwt');
-
-
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
+
 class executor {
   constructor() {
     this.responseData = {};
@@ -27,29 +25,31 @@ class executor {
 
       // Initializng basic variables
       const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
+
+      // Decide encryption mode. And enforce enc_state to be true if encryption is Strict
       const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
-      // Enforce enc_state to be true if encryption is Strict
       if (ENCRYPTION_MODE == ENC_MODE.STRICT && encState != ENC_ENABLED) {
         this.setResponse('ENCRYPTION_STATE_STRICTLY_ENABLED');
         throw new Error();
       }
       const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_ENABLED));
-      if (lngKey) this.setMemberVariable('lng_key', lngKey);
+
+      // Set member variables
       this.setMemberVariable('encryptionState', encryptionState);
+      if (lngKey) this.setMemberVariable('lng_key', lngKey);
 
       // Finalize methodName including custom route
-      let methodName = this.getMethodName(request.pathParameters);
-
+      let methodName = baseHelper.getMethodName(request.pathParameters);
       request.pathParameters = null;
-      const { customMethodName, pathParameters } = this.getCustomRoute(methodName);
+      const { customMethodName, pathParameters } = baseHelper.getCustomRoute(methodName);
       if (customMethodName) {
         request.pathParameters = pathParameters;
         methodName = customMethodName;
       }
 
       // Resolve path from methodName
-      const pathName = this.getMethodPath(methodName);
-      const methodClasses = this.getMethodClasses(pathName);
+      const pathName = baseHelper.getMethodPath(methodName);
+      const methodClasses = baseHelper.getMethodClasses(pathName);
       if (!methodClasses) {
         this.setResponse('METHOD_NOT_FOUND');
         throw new Error();
@@ -64,7 +64,7 @@ class executor {
       }
 
       // Validate request method with initializer
-      if (!this.isValidRequestMethod(request.httpMethod, initInstance.pkgInitializer.requestMethod)) {
+      if (!baseHelper.isValidRequestMethod(request.httpMethod, initInstance.pkgInitializer.requestMethod)) {
         this.setResponse('INVALID_REQUEST_METHOD');
         throw new Error();
       }
@@ -80,19 +80,22 @@ class executor {
         }
         actionInstance.setMemberVariable('userObj', data);
       }
+
       // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
       const params = initInstance.getParameter();
-      const isFileExpected = this.isFileExpected(params);
-      let requestData = this.parseRequestData(request, isFileExpected);
+      const isFileExpected = baseHelper.isFileExpected(params);
+      let requestData = baseHelper.parseRequestData(request, isFileExpected);
+
       // If encyption is enabled, then decrypt the request data
       if (!isFileExpected && encryptionState) {
         requestData = decrypt(requestData.data);
         if (typeof requestData === 'string')
           requestData = JSON.parse(requestData);
       }
-
       requestData = requestData ? requestData : {};
+
+      // Proccess and validate each parameters and set it as member variable
       for (let paramName in params) {
         let param = params[paramName];
         const parsedData = await parameterProcessor.processParameter(requestData[param.name]);
@@ -109,8 +112,9 @@ class executor {
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
       const { responseString, responseOptions, packageName } = actionInstance.getResponseString();
-      // OR: this.setResponse(responseString, responseOptions);
       const { responseCode, responseMessage } = this.getResponse(responseString, responseOptions, packageName);
+      
+      // If encryption mode is enabled then encrypt the response data
       if (encryptionState) {
         this.responseData = encrypt(JSON.stringify(this.responseData));
       }
@@ -133,52 +137,6 @@ class executor {
   }
 
   /** HELPER METHODS */
-
-  getMethodName(pathParameters) {
-    return pathParameters ? pathParameters.proxy : pathParameters;
-  }
-
-  getMethodPath(methodName) {
-    let splitString = methodName.split("/");
-    splitString = splitString.map((element, index) => {
-      //Checking for index > 1 because if method name is "/user/detail" then second resource(detail) should
-      //get converted to Pascal case "user" should be camel case
-      if (index == 1) {
-        element = `.${element}`;
-      } else if (index > 1) {
-        element = this.capitalizeFirstLetter(element);
-      }
-      return element;
-    });
-
-    return baseMethodsPath + splitString.join("");
-  }
-
-  getCustomRoute(methodName) {
-    let pathParameters;
-    const requestMap = httpRequest.filter(request => {
-      const pathVal = request.path.replace(/\/:[a-z]+\w+/g, "");
-      const pathParamVal = methodName.split(pathVal).filter((el) => el.length != 0).length
-        ? methodName.split(pathVal).filter((el) => el.length != 0)[0].split('/').filter((el) => el.length != 0)
-        : [];
-      const pathParamKeys = request.path.match(/\/:[a-z]+\w+/g) ? request.path.match(/\/:[a-z]+\w+/g).map(paramKey => paramKey.replace('/:', '')) : [];
-      if (pathParamKeys.length == 0 && pathVal == methodName) {
-        return true;
-      } else if (methodName.search(pathVal) == 0 && pathParamKeys.length == pathParamVal.length) {
-        pathParameters = {};
-        pathParamKeys.map((key, index) => {
-          pathParameters[key] = pathParamVal[index];
-        });
-        return true;
-      }
-      return false;
-    });
-
-    if (requestMap.length != 0) {
-      return { customMethodName: requestMap[0].methodName, pathParameters };
-    }
-    return {};
-  }
 
   // TODO: In future we will move this to an Authorization class
   validateAccesstoken = async (accessToken) => {
@@ -209,52 +167,6 @@ class executor {
 
     validationResponse.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: 'access_token' };
     return validationResponse;
-  }
-
-  capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-  }
-
-  isValidRequestMethod(httpMethod, requestMethod) {
-    if (typeof requestMethod == "string" && httpMethod.toUpperCase() !== requestMethod.toUpperCase()) {
-      return false;
-    }
-    if (typeof requestMethod == "object" && !requestMethod.includes(httpMethod)) {
-      return false;
-    }
-    return true;
-  }
-
-  getMethodClasses(pathName) {
-    try {
-      return requireDir(pathName);
-    } catch (e) {
-      return false;
-    }
-  }
-
-  isFileExpected(params) {
-    let fileExpected = false;
-    Object.keys(params).map(key => {
-      if (params[key].type == 'file') fileExpected = true;
-    });
-    return fileExpected;
-  }
-
-  parseRequestData(request) {
-    let requestData = request.queryStringParameters || {};
-
-    Object.assign(requestData, request.body ? request.body : {});
-
-    if (request.pathParameters) {
-      Object.keys(request.pathParameters).map(key => {
-        requestData
-          ? (requestData[key] = request.pathParameters[key])
-          : (requestData = { [key]: request.pathParameters[key] });
-      });
-    }
-
-    return requestData ? requestData : {};
   }
 
   setMemberVariable(paramName, value) {

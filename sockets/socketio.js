@@ -22,9 +22,10 @@ const init = () => {
     console.log('Socket connected :: ', id);
     socket.on('message', function (msg) {
       const message = typeof msg == "string" ? JSON.parse(msg) : msg;
-      require(path.resolve(process.cwd(), 'socket.io.js')).socketsHandler({
+      require(path.resolve(process.cwd(), 'socketio.js')).handler({
         requestContext: {
-          connectionId: id
+          connectionId: id,
+          eventType: "MESSAGE"
         },
         body: message
       });
@@ -34,17 +35,19 @@ const init = () => {
       console.log('Socket Closing :: ', id);
 
       // Invoke disconnect handler from project
-      require(path.resolve(process.cwd(), 'socket.io.js')).disconnectHandler({
+      require(path.resolve(process.cwd(), 'socketio.js')).handler({
         requestContext: {
-          connectionId: id
+          connectionId: id,
+          eventType: "DISCONNECT"
         }
       });
     });
 
     // Invoke connection handler from project
-    require(path.resolve(process.cwd(), 'socket.io.js')).connectHandler({
+    require(path.resolve(process.cwd(), 'socketio.js')).handler({
       requestContext: {
-        connectionId: id
+        connectionId: id,
+        eventType: "CONNECT"
       }
     });
   });

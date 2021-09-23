@@ -10,12 +10,8 @@ provider:
 
 plugins:
   - serverless-offline
-  - serverless-prune-plugin
 
 custom:
-  prune:
-    automatic: true
-    number: 1
   stageVariables:
     requestType: "API"
 
@@ -29,19 +25,19 @@ functions:
           cors: true
 
   connectHandler:
-    handler: websockets.connectHandler
+    handler: websockets.handler
     events:
       - websocket:
           route: $connect
 
   disconnectHandler:
-    handler: websockets.disconnectHandler
+    handler: websockets.handler
     events:
       - websocket:
           route: $disconnect
 
   defaultSocket:
-    handler: websockets.socketsHandler
+    handler: websockets.handler
     events:
       - websocket:
           route: $default

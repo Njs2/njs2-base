@@ -1,10 +1,10 @@
-// Import and load env files
 AutoLoad = require('@njs2/base/base/autoload.class');
 AutoLoad.loadConfig();
 AutoLoad.loadModules();
 
-// Import Executor class
-const { sockets, Executor } = require('@njs2/base');
+const { Executor, sockets } = require("@njs2/base");
+sockets.init();
+
 const { CONNECTION_HANDLER_METHOD, DISCONNECTION_HANDLER_METHOD } = require('./src/global/constants');
 
 const executeRequests = async (connectionId, wsEvent, request_id) => {
@@ -16,6 +16,7 @@ const executeRequests = async (connectionId, wsEvent, request_id) => {
 module.exports.handler = async (event) => {
   const body = typeof event.body == "string" ? JSON.parse(event.body) : event.body;
   const requestId = body ? body.request_id : null;
+
   try {
     let wsEvent = {};
     wsEvent.httpMethod = body.method;
@@ -23,25 +24,24 @@ module.exports.handler = async (event) => {
     wsEvent.headers = body.headers && typeof body.headers == 'object' ? body.headers : {};
 
     switch (event.requestContext.eventType) {
-      case "CONNECT":
+      case 'CONNECT':
         wsEvent.pathParameters = {
           proxy: CONNECTION_HANDLER_METHOD
         };
         CONNECTION_HANDLER_METHOD && await executeRequests(event.requestContext.connectionId, wsEvent);
         break;
 
-      case "DISCONNECT":
+      case 'DISCONNECT':
         wsEvent.pathParameters = {
           proxy: DISCONNECTION_HANDLER_METHOD
         };
         DISCONNECTION_HANDLER_METHOD && await executeRequests(event.requestContext.connectionId, wsEvent);
         break;
 
-      case "MESSAGE":
+      case 'MESSAGE':
         wsEvent.pathParameters = {
           proxy: body.action
         };
-
         if (body.method == 'GET') {
           wsEvent.queryStringParameters = body.body;
         } else if (body.method == 'POST') {

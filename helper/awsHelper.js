@@ -1,5 +1,5 @@
-const pjson = require('../../package.json');
-const baseHelper = require('@njs2/base/helper/baseHelper.class');
+const pjson = require('../package.json');
+const baseHelper = require('./baseHelper.class');
 
 const [
   AWS_REGION,
@@ -8,11 +8,9 @@ const [
   AWS_ROLE_ARN
 ] = baseHelper.loadConfig(["AWS_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY_ID", "AWS_ROLE_ARN"], pjson.name);
 
-
-const websocketHelper = {};
-
+const awsHelper = {};
 // Assume role to make aws sdk calls.
-websocketHelper.getCrossAccountCredentials = async () => {
+awsHelper.getCrossAccountCredentials = async () => {
   return new Promise((resolve, reject) => {
     if (!AWS_ROLE_ARN || !AWS_ROLE_ARN.length) {
       resolve({
@@ -20,8 +18,6 @@ websocketHelper.getCrossAccountCredentials = async () => {
         accessKeyId: AWS_ACCESS_KEY_ID,
         secretAccessKey: AWS_SECRET_ACCESS_KEY_ID
       });
-    } else if (!AWS_ACCESS_KEY_ID || !AWS_ACCESS_KEY_ID.length) {
-      resolve({});
     } else {
       const AWS = require('aws-sdk');
       const sts = new AWS.STS({
@@ -50,4 +46,4 @@ websocketHelper.getCrossAccountCredentials = async () => {
   });
 };
 
-module.exports = websocketHelper;
+module.exports = awsHelper;

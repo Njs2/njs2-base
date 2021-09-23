@@ -1,4 +1,4 @@
-/* eslint-disable-next-line no-undef */
+
 class <method-name>Action extends baseAction {
 
   async executeMethod() {

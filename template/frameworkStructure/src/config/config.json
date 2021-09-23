@@ -10,6 +10,7 @@
   "SOCKET_PORT": 3001,
   "WSS_BASE_URL": "http://localhost:3001",
   "CMS_PORT": 3003,
+  "LAMBDA_FUNCTION_NAME": "",
   "AUTH": {
     "AUTH_MODE": "JWT",
     "JWT_SECRET": "123",

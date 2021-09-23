@@ -51,7 +51,7 @@ class ParameterProcessor {
         res = Number(requestData);
         // set error response if a parameter is specified in request but is not an integer
         if (isNaN(res)) {
-          return false;
+          return;
         }
         break;
 
@@ -92,7 +92,7 @@ class ParameterProcessor {
   //checks if the parameter is set as required and the that parameter has some value in the request
   verifyRequiredParameter(paramData, requestData) {
     //checks if the paramater is given in request by user
-    if (paramData.required && ((typeof (requestData) == "string" && requestData.trim() == "") || (typeof (requestData) == "number" && isNaN(requestData)))) {
+    if (paramData.required && ((paramData.type == "string" && (!requestData || requestData.trim() == "")) || (paramData.type == "number" && isNaN(requestData)))) {
       return { error: true };
     }
 

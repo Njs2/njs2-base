@@ -1,4 +1,4 @@
-/* eslint-disable-next-line no-undef */
+
 class <method-name>Initalize extends baseInitialize {
 
   constructor() {
