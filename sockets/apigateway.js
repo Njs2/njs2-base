@@ -1,6 +1,6 @@
 const AWS = require('aws-sdk');
 const pjson = require('../package.json');
-
+const GlobalMethods = require('../helper/globalMethods');
 const [
   WSS_BASE_URL,
   USE_LAMBDA_ROLE

@@ -19,12 +19,15 @@ module.exports.handler = async (event) => {
 
   try {
     let wsEvent = {};
-    wsEvent.httpMethod = body.method;
-    wsEvent.requestId = body.request_id;
-    wsEvent.headers = body.headers && typeof body.headers == 'object' ? body.headers : {};
 
     switch (event.requestContext.eventType) {
       case 'CONNECT':
+        wsEvent.httpMethod = 'GET';
+        wsEvent.requestId = null;
+        wsEvent.headers = {};
+        wsEvent.pathParameters = {
+          proxy: CONNECTION_HANDLER_METHOD
+        };
         wsEvent.pathParameters = {
           proxy: CONNECTION_HANDLER_METHOD
         };
@@ -32,6 +35,9 @@ module.exports.handler = async (event) => {
         break;
 
       case 'DISCONNECT':
+        wsEvent.httpMethod = 'GET';
+        wsEvent.requestId = null;
+        wsEvent.headers = {};
         wsEvent.pathParameters = {
           proxy: DISCONNECTION_HANDLER_METHOD
         };
@@ -39,6 +45,9 @@ module.exports.handler = async (event) => {
         break;
 
       case 'MESSAGE':
+        wsEvent.httpMethod = body.method;
+        wsEvent.requestId = body.request_id;
+        wsEvent.headers = body.headers && typeof body.headers == 'object' ? body.headers : {};
         wsEvent.pathParameters = {
           proxy: body.action
         };
@@ -51,7 +60,7 @@ module.exports.handler = async (event) => {
         break;
     }
 
-    return { statusCode: 200, body: {} };
+    return { statusCode: 200, body: "SUCCESS" };
   } catch (e) {
     console.log(e);
     await sockets.emit(event.requestContext.connectionId, { "request_id": requestId, 'error': 'Invalid Request' });

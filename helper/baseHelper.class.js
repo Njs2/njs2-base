@@ -1,7 +1,7 @@
 const requireDir = require('require-dir');
 const path = require('path');
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
-
+const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class baseHelper {
 
   static getMethodName(pathParameters) {

@@ -11,7 +11,6 @@ const ParameterProcessor = require('./parameterProcessor.class');
 const { encrypt, decrypt } = require('../helper/encryption');
 const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalConstants');
 const jwt = require('../helper/jwt');
-const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 
 class executor {
   constructor() {

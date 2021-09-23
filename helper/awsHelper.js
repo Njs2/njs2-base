@@ -1,5 +1,5 @@
 const pjson = require('../package.json');
-
+const GlobalMethods = require('../helper/globalMethods');
 const [
   AWS_REGION,
   AWS_ACCESS_KEY_ID,
