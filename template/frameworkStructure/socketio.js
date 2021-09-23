@@ -28,9 +28,6 @@ module.exports.handler = async (event) => {
         wsEvent.pathParameters = {
           proxy: CONNECTION_HANDLER_METHOD
         };
-        wsEvent.pathParameters = {
-          proxy: CONNECTION_HANDLER_METHOD
-        };
         CONNECTION_HANDLER_METHOD && await executeRequests(event.requestContext.connectionId, wsEvent);
         break;
 
