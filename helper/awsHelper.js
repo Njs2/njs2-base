@@ -1,12 +1,11 @@
 const pjson = require('../package.json');
-const baseHelper = require('./baseHelper.class');
 
 const [
   AWS_REGION,
   AWS_ACCESS_KEY_ID,
   AWS_SECRET_ACCESS_KEY_ID,
   AWS_ROLE_ARN
-] = baseHelper.loadConfig(["AWS_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY_ID", "AWS_ROLE_ARN"], pjson.name);
+] = GlobalMethods.loadConfig(["AWS_REGION", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY_ID", "AWS_ROLE_ARN"], pjson.name);
 
 const awsHelper = {};
 // Assume role to make aws sdk calls.
