@@ -1,0 +1,51 @@
+service: serverless-framework
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: prod
+  region: ap-south-1
+  role: arn:aws:iam::667505010803:role/service-role/lambda-role-8vrgj12i
+  timeout: 25
+
+plugins:
+  - serverless-offline
+
+custom:
+  stageVariables:
+    requestType: "API"
+
+functions:
+  api:
+    handler: lambda.handler
+    events:
+      - http:
+          path: /{proxy+}
+          method: ANY
+          cors: true
+
+  connectHandler:
+    handler: websockets.handler
+    events:
+      - websocket:
+          route: $connect
+
+  disconnectHandler:
+    handler: websockets.handler
+    events:
+      - websocket:
+          route: $disconnect
+
+  defaultSocket:
+    handler: websockets.handler
+    events:
+      - websocket:
+          route: $default
+
+  postman:
+    handler: postman.execute
+    events:
+      - http:
+          path: /postman
+          method: ANY
+          cors: true

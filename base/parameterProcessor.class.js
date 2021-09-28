@@ -1,248 +1,98 @@
-const querystring = require('querystring');
-const Autoload = require('./autoload.class');
-const dbManager = require("../package/dbManager").dbManager;
-const { decrypt } = require("./encryption");
-const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
-const multipart = require('aws-multipart-parser');
+class ParameterProcessor {
 
-class ParameterProcessor extends baseAction {
-
-  async processParameter(initializer, event, action) {
-    let requestData;
-    let encryptionState = true;
-    const params = initializer.getParameter();
-    const isSecured = initializer.pkgInitializer.isSecured;
-
-    let { lng_key: lngKey } = event.headers;
-    if (lngKey) {
-      this.setMemberVariable('lng_key', lngKey);
-      action.setMemberVariable('lng_key', lngKey);
-    }
-
-    let fileExists = false;
-    Object.keys(params).map(key => {
-      if (params[key].type == 'file') fileExists = true;
-    });
-
-    try {
-      //remove the request query/body parameters from request object
-      if (event.httpMethod == 'GET') {
-        requestData = event.queryStringParameters;
-        encryptionState = requestData.enc_state == 1;
-        if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
-          requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
-        }
-        event.queryStringParameters = null;
-        event.multiValueQueryStringParameters = null;
-      } else if (event.httpMethod == 'POST') {
-        if (typeof (event.body) == "string") {
-          if (fileExists) {
-            requestData = multipart.parse(event, true);
-          } else {
-            requestData = querystring.parse(event.body);
-          }
-          encryptionState = requestData.enc_state == 1;
-          if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
-            const urlParams = new URLSearchParams(requestData);
-            requestData = requestData.data ? JSON.parse(decrypt(Object.fromEntries(urlParams).data)) : {};
-          }
-        } else {
-          requestData = event.body;
-          encryptionState = requestData.enc_state == 1;
-          if (!fileExists && (ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
-            requestData = requestData.data ? JSON.parse(decrypt(requestData.data)) : {};
-          }
-        }
-        event.body = null;
-      }
-
-      if (event.pathParameters) {
-        Object.keys(event.pathParameters).map(key => {
-          requestData ? requestData[key] = event.pathParameters[key] : requestData = { [key]: event.pathParameters[key] };
-        });
-      }
-
-      requestData = requestData ? requestData : {};
-      Autoload.requestData = requestData;
-      Autoload.encryptionState = encryptionState;
-
-      this.removeUndefinedParameters(params, {}, requestData);
-
-      this.trimRequestParameterValues(requestData);
-
-      //process the user_id and access_token parameters here
-      if (isSecured) {
-        let { access_token: accessToken } = event.headers;
-
-        if (!accessToken || typeof accessToken != "string" || accessToken.trim() == "") {
-          let options = [];
-          options.paramName = 'access_token';
-          this.setResponse("INVALID_INPUT_EMPTY", options);
-          return false;
-        }
-
-        if ((ENCRYPTION_MODE == "strict" || (ENCRYPTION_MODE == "optional" && encryptionState))) {
-          accessToken = decrypt(accessToken);
-        }
-
-        const validatedUser = await dbManager.verifyAccessToken(accessToken);
-        if (!validatedUser) {
-          this.setResponse("INVALID_ACCESS_TOKEN");
-          return false;
-        }
-
-        action.setMemberVariable('accessToken', accessToken);
-        action.setMemberVariable('userObj', validatedUser);
-      }
-
-      if (!this.validateParameters(params, requestData, action)) {
-        return false;
-      }
-      return true;
-    } catch (e) {
-      console.log(e)
-    }
+  processParameter(requestData) {
+    requestData = this.removeUndefinedParameters(requestData);
+    requestData = this.trimRequestParameterValues(requestData);
+    return requestData;
   }
 
   //checks if all the parameters given in request has been specified in init script. if not removes them from requestData object
-  removeUndefinedParameters(paramData, authParamData, requestData) {
-
-    let matchFound = false;
-    for (let requestParamName in requestData) {
-      matchFound = false;
-      for (let paramName in paramData) {
-        if (requestParamName == paramData[`${paramName}`].name) {
-          matchFound = true;
-        }
-      }
-      for (let paramName in authParamData) {
-        if (requestParamName == authParamData[`${paramName}`].name) {
-          matchFound = true;
-        }
-      }
-      if (!matchFound) {
-        delete requestData[`${requestParamName}`];
-      }
+  removeUndefinedParameters(requestData) {
+    if (!["number", "string"].includes(typeof requestData) || (typeof requestData == "object" && !requestData)) {
+      return;
     }
+    return requestData;
   }
-
 
   //trims the spaces if any in the request parameter's value
   trimRequestParameterValues(requestData) {
-    for (let paramName in requestData) {
-      if (typeof (requestData[`${paramName}`]) == "string") {
-        requestData[`${paramName}`] = requestData[`${paramName}`].trim();
-      }
+    if (typeof requestData === "string") {
+      return requestData.trim();
     }
+    return requestData;
   }
 
-  //get the auth parameters(userId and accessToken)
-  getAuthParameters() {
-    const param = [];
+  validateParameters(param, requestData) {
+    let responseObj = { error: null, value: null };
+    // Check Type of parameter
+    let paramData = this.convertToGivenParameterType(param, requestData);
 
-    param.accessToken = {
-      name: "access_token",
-      type: "string",
-      description: "access token",
-      required: true,
-      default: ""
-    }
-    return param;
-  }
-
-  validateParameters(param, requestData, action) {
-    let errorParameterName, result = true;
-    for (let paramName in param) {
-      let isSuccessfull = this.verifyRequiredParameter(paramName, param, requestData);
-      if (!isSuccessfull) {
-        //the required parameter is not passed or has an empty value in the request
-        result = false;
-        errorParameterName = param[`${paramName}`].name;
-        break;
-      }
-
-      if (!this.convertToGivenParameterType(paramName, param, requestData)) {
-        return false;
-      }
-      this.setDefaultParameters(paramName, param, requestData);
-      this.setVariableValues(paramName, param, requestData, action);
+    //Check if param is declared as Mandatory or Optional in InitClass
+    let validatedData = this.verifyRequiredParameter(param, paramData);
+    if (validatedData.error) {
+      responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
+      return responseObj;
     }
 
-    if (errorParameterName) {
-      let options = [];
-      options.paramName = errorParameterName;
-      this.setResponse("PARAMETER_IS_MANDATORY", options);
-      return false;
-    }
-    return true;
+    //Set Default value to param when it is Optional
+    responseObj.value = this.setDefaultParameters(param, validatedData.data);
+    return responseObj;
   }
 
-  setVariableValues(paramName, paramData, requestData, action) {
-    const requestParamName = paramData[`${paramName}`].name;
-    action.setMemberVariable(paramName, requestData[`${requestParamName}`]);
-  }
   //converts all the request parameters to the specified type(number and string)
-  convertToGivenParameterType(paramName, paramData, requestData) {
-    const requestParamName = paramData[`${paramName}`].name;
+  convertToGivenParameterType(paramData, requestData) {
+    let res;
+    switch (paramData.type) {
+      case "number":
+        res = Number(requestData);
+        // set error response if a parameter is specified in request but is not an integer
+        if (isNaN(res)) {
+          return;
+        }
+        break;
 
-    if (requestData[`${requestParamName}`] && requestData[`${requestParamName}`] != "") {
-      if (paramData[`${paramName}`].type == "number") {
+      case "string":
+        if (!requestData) return false;
+        res = requestData.toString();
+        break;
 
-        requestData[`${requestParamName}`] = Number(requestData[`${requestParamName}`]);
-
-        if (isNaN(requestData[`${requestParamName}`])) {
-          //set error response if a parameter is specified in request but is not an integer
-          let options = [];
-          options.paramName = requestParamName;
-          this.setResponse("INVALID_INPUT_INTEGER", options);
+      case "file":
+        // check if json has keys "type" = "file", "fileName", content and Content-Type
+        if (requestData.type != "file" || !requestData.fileName || !requestData.contentType || !requestData.content) {
           return false;
         }
+        res = requestData;
+        break;
 
-      } else if (paramData[`${paramName}`].type == "string") {
-        requestData[`${requestParamName}`] = requestData[`${requestParamName}`].toString();
-      }
-    } else if (requestData[`${requestParamName}`] == "") {
-      //set error response if a parameter is specified in request but is empty
-      let options = [];
-      options.paramName = requestParamName;
-      this.setResponse("INVALID_INPUT_EMPTY", options);
-      return false;
+      default:
+        res = requestData;
+        break;
     }
-    return true;
+    return res;
   }
 
   //if the given parameter has a default value specified and request does not have that parameter
   //then set that default value for that parameter in the request
-  setDefaultParameters(paramName, paramData, requestData) {
-    const requestParamName = paramData[`${paramName}`].name;
-
-    if (!requestData[`${requestParamName}`]) {
-      if (paramData[`${paramName}`].type == "number" && paramData[`${paramName}`].default !== "") {
-
-        requestData[`${requestParamName}`] = Number(paramData[`${paramName}`].default);
-
-      } else if (paramData[`${paramName}`].type == "string" && paramData[`${paramName}`].default !== "") {
-
-        requestData[`${requestParamName}`] = paramData[`${paramName}`].default.toString();
+  setDefaultParameters(paramData, requestData) {
+    let res = requestData;
+    if (!requestData) {
+      if (paramData.type == "number" && paramData.default !== "") {
+        res = Number(paramData.default);
+      } else if (paramData.type == "string" && paramData.default !== "") {
+        res = paramData.default.toString();
       }
     }
+    return res;
   }
 
   //checks if the parameter is set as required and the that parameter has some value in the request
-  verifyRequiredParameter(paramName, paramData, requestData) {
-    const requestParamName = paramData[`${paramName}`].name;
-
-    //if requestdata is empty and no params or body passed
-    if (!requestData) {
-      return false;
-    }
+  verifyRequiredParameter(paramData, requestData) {
     //checks if the paramater is given in request by user
-    if (paramData[`${paramName}`].required && (!requestData[`${requestParamName}`] ||
-      typeof (requestData[`${paramName}`]) == "string" && requestData[`${requestParamName}`].trim() == "")) {
-      return false;
+    if (paramData.required && ((paramData.type == "string" && (!requestData || requestData.trim() == "")) || (paramData.type == "number" && isNaN(requestData)))) {
+      return { error: true };
     }
 
-    return true;
+    return { error: false, data: requestData };
   }
 }
 

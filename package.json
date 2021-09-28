@@ -15,7 +15,6 @@
     "pg": "^8.3.3",
     "pg-hstore": "^2.3.3",
     "require-dir": "^1.2.0",
-    "sequelize": "^6.3.5",
     "socket.io": "^4.1.2"
   },
   "njs2-type": "base",

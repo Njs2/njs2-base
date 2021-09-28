@@ -1,47 +1,30 @@
-require("bytenode");
-const { DEFAULT_LNG_KEY } = require("@njs2/base/lib/constants");
+const { DEFAULT_LNG_KEY } = require("../helper/globalConstants");
 const path = require("path");
-const Autoload = require('./autoload.class');
-const BASE_RESPONSE_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${DEFAULT_LNG_KEY}.js`)).RESPONSE;
-const PROJECT_RESPONSE_DEFAULT_LNG = require(`../lib/i18n/response/response.${DEFAULT_LNG_KEY}.js`).RESPONSE;
+const fs = require("fs");
 const BASE_STRING_DEFAULT_LNG = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${DEFAULT_LNG_KEY}.js`)).STRING;
-const PROJECT_STRING_DEFAULT_LNG = require(`../lib/i18n/string/string.${DEFAULT_LNG_KEY}.js`).STRING;
-
+const PROJECT_STRING_DEFAULT_LNG = require(`../i18n/strings/string.${DEFAULT_LNG_KEY}.js`).STRING;
+require('bytenode');
 class baseAction {
 
-  setResponse(code, options = [], packageName) {
-    // const pkgName = packageName && packageName.indexOf('@') == 0 ? packageName.split('/')[0].substring(1) : packageName;
-    // let RESP = pkgName && global.RESPONSE[`${pkgName}-${code}`] ? global.RESPONSE[`${pkgName}-${code}`] : global.RESPONSE[`${code}`];
-    let RESP;
-    try {
-      if (this.lng_key) {
-        RESP = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${this.lng_key}.js`)).RESPONSE;
-        if (!RESP[code])
-          RESP = require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE;
-      } else throw new Error('Fallback to default language');
-    } catch (e) {
-      RESP = BASE_RESPONSE_DEFAULT_LNG;
-      if (!RESP[code])
-        RESP = PROJECT_RESPONSE_DEFAULT_LNG;
-    }
+  //TODO: Check the member variable
+  constructor() {
+    this.responseString = '';
+    this.responseOptions = {};
+  }
 
-    if (!RESP[code]) {
-      RESP = RESP["RESPONSE_CODE_NOT_FOUND"];
-    } else {
-      RESP = RESP[code];
-    }
-
-    Autoload.responseCode = RESP.responseCode;
-    Autoload.responseMessage = RESP.responseMessage;
-
-    for (let keyName in options) {
-      Autoload.responseMessage = Autoload.responseMessage.replace(keyName, options[`${keyName}`]);
-    }
+  setResponse(responseString, options, packageName) {
+    this.responseString = responseString;
+    this.responseOptions = options;
+    this.packageName = packageName;
     return true;
   }
 
-  setDebugMessage(msg) {
-    Autoload.responseMessage = msg;
+  getResponseString() {
+    return {
+      responseString: this.responseString,
+      responseOptions: this.responseOptions ? this.responseOptions : {},
+      packageName: this.packageName
+    };
   }
 
   setMemberVariable(paramName, value) {
@@ -50,30 +33,40 @@ class baseAction {
   }
 
   loadPkg(packageName) {
-    return require(path.resolve(process.cwd(), `Njs2-modules/${packageName.indexOf('@') == 0 ? packageName.split('/').join('/methods/').substring(1) : packageName}`))();
+    let packageVals = packageName.split('/');
+    return require(path.resolve(
+      process.cwd(),
+      `njs2_modules/${[...packageVals.slice(0, packageVals.length - 1), "methods", ...packageVals.slice(packageVals.length - 1)].join('/')}/index`
+    ))();
   }
 
+  // TODO: revisit later to reposition this function/responsibilities
   getResponseList() {
-    let RESP;
-    try {
-      if (this.lng_key) {
-        RESP = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${this.lng_key}.js`)).RESPONSE;
-        RESP = { ...RESP, ...require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE };
-      } else throw new Error('Fallback to default language');
-    } catch (e) {
-      RESP = { ...PROJECT_RESPONSE_DEFAULT_LNG, ...BASE_RESPONSE_DEFAULT_LNG };
-    }
+    const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
+    const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
 
-    return Object.keys(RESP).map(res => RESP[res]);
+    let RESP = [...Object.values(PROJECT_RESPONSE), ...Object.values(BASE_RESPONSE)];
+    const packageJson = require(path.resolve(process.cwd(), 'package.json'));
+    Object.keys(packageJson.dependencies).map(pkg => {
+      console.log(path.resolve(process.cwd(), `njs2_modules/${pkg}/contract/response.json`));
+      if (fs.existsSync(path.resolve(process.cwd(), `njs2_modules/${pkg}/contract/response.json`))) {
+        const pkgPath = path.resolve(process.cwd(), `njs2_modules/${pkg}/contract/response.json`);
+        const pkgResponse = require(pkgPath);
+        RESP = [...RESP, ...Object.values(pkgResponse)];
+      }
+    });
+
+    return RESP;
   }
 
-  getStringValue(key) {
+  // TODO: revisit later to reposition this function/responsibilities
+  getStringValue(key, lngKey = this.lngKey) {
     let STR = '';
     try {
-      if (this.lng_key) {
-        STR = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${this.lng_key}.js`)).STRING;
+      if (lngKey) {
+        STR = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${lngKey}.js`)).STRING;
         if (!STR[key])
-          STR = require(`../lib/i18n/string/string.${this.lng_key}.js`).STRING;
+          STR = require(`../i18n/strings/string.${lngKey}.js`).STRING;
       } else throw new Error('Fallback to default language');
     } catch (e) {
       STR = BASE_STRING_DEFAULT_LNG;
