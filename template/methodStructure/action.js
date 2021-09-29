@@ -1,3 +1,4 @@
+
 class <method-name>Action extends baseAction {
 
   async executeMethod() {

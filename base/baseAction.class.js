@@ -76,37 +76,6 @@ class baseAction {
 
     return STR[key];
   }
-
-  getResponseList() {
-    let RESP;
-    try {
-      if (this.lng_key) {
-        RESP = require(path.resolve(process.cwd(), `src/global/i18n/response/response.${this.lng_key}.js`)).RESPONSE;
-        RESP = { ...RESP, ...require(`../lib/i18n/response/response.${this.lng_key}.js`).RESPONSE };
-      } else throw new Error('Fallback to default language');
-    } catch (e) {
-      RESP = { ...PROJECT_RESPONSE_DEFAULT_LNG, ...BASE_RESPONSE_DEFAULT_LNG };
-    }
-
-    return Object.keys(RESP).map(res => RESP[res]);
-  }
-
-  getStringValue(key) {
-    let STR = '';
-    try {
-      if (this.lng_key) {
-        STR = require(path.resolve(process.cwd(), `src/global/i18n/string/string.${this.lng_key}.js`)).STRING;
-        if (!STR[key])
-          STR = require(`../lib/i18n/string/string.${this.lng_key}.js`).STRING;
-      } else throw new Error('Fallback to default language');
-    } catch (e) {
-      STR = BASE_STRING_DEFAULT_LNG;
-      if (!STR[key])
-        STR = PROJECT_STRING_DEFAULT_LNG;
-    }
-
-    return STR[key];
-  }
 }
 
 module.exports = baseAction;

@@ -1,3 +1,4 @@
+
 class <method-name>Initalize extends baseInitialize {
 
   constructor() {
