@@ -17,7 +17,7 @@ class roomLib {
   }
 
   static async getCustomRoom(type) {
-    return await SQLManager.doExecuteRawQuery(tableName, `SELECT * FROM ${tableName} WHERE type = ?`, [type]);
+    return await SQLManager.doExecuteRawQuery(`SELECT * FROM ${tableName} WHERE type = ?`, [type]);
   }
 }
 

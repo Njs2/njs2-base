@@ -45,7 +45,17 @@ class autoLoad {
     return sqlLibraryList.map(sqlLibrary => {
       return require(path.resolve(process.cwd(), `src/library/sqlLib/${sqlLibrary}.lib.js`));
     });
-  }
+  };
+
+  static loadLibray(type, libraryList) {
+    if (type == 'sql') {
+      return this.loadSqlLibray(libraryList);
+    } else if (type == 'helper') {
+      return libraryList.map(library => {
+        return require(path.resolve(process.cwd(), `src/library/helperLib/${library}.js`));
+      });
+    }
+  };
 }
 
 module.exports = autoLoad;
