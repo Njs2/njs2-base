@@ -39,7 +39,7 @@ ENCRYPTION_IV | <string> | Encryption iv
 ## BASE Config
 Keys | Values | Description
 | :--- | ---: | :---:
-USE_LAMBDA_ROLE | true/false | Use lambda role - true will use the role and false will use the credentials from below keys
+USE_LAMBDA_ROLE | YES/NO | Use lambda role - true will use the role and false will use the credentials from below keys
 AWS_REGION | <string> | AWS region
 AWS_ACCESS_KEY_ID | <string> | AWS access key id
 AWS_SECRET_ACCESS_KEY | <string> | AWS secret access key

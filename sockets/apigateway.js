@@ -10,7 +10,7 @@ const awsHelper = require("../helper/awsHelper");
 const emit = async (connectionId, payload) => {
   try {
     if (!connectionId) return;
-    let credentials = USE_LAMBDA_ROLE ? {} : await awsHelper.getCrossAccountCredentials();
+    let credentials = USE_LAMBDA_ROLE.toLowerCase() == "yes" ? {} : await awsHelper.getCrossAccountCredentials();
     credentials.apiVersion = '2018-11-29';
     credentials.endpoint = WSS_BASE_URL;
     const apiGatewayManagementApi = new AWS.ApiGatewayManagementApi(credentials);
