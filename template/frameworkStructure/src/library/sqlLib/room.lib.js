@@ -19,6 +19,10 @@ class roomLib {
   static async getCustomRoom(type) {
     return await SQLManager.doExecuteRawQuery(`SELECT * FROM ${tableName} WHERE type = ?`, [type]);
   }
+
+  static async getCustomRoomData(type) {
+    return await SQLManager.doExecuteRawQuery(`SELECT * FROM ${tableName} WHERE type = :type`, { type: type });
+  }
 }
 
 module.exports = roomLib;
