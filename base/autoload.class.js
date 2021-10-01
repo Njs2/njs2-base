@@ -43,18 +43,14 @@ class autoLoad {
 
   static loadSqlLibray(sqlLibraryList) {
     return sqlLibraryList.map(sqlLibrary => {
-      return require(path.resolve(process.cwd(), `src/library/sqlLib/${sqlLibrary}.lib.js`));
+      return require(path.resolve(process.cwd(), `src/library/sqlLib/${sqlLibrary}.lib.js`)).getInstance();
     });
   };
 
   static loadLibray(type, libraryList) {
-    if (type == 'sql') {
-      return this.loadSqlLibray(libraryList);
-    } else if (type == 'helper') {
-      return libraryList.map(library => {
-        return require(path.resolve(process.cwd(), `src/library/helperLib/${library}.js`));
-      });
-    }
+    return libraryList.map(library => {
+      return require(path.resolve(process.cwd(), `src/library/${type}/${library}.js`)).getInstance();
+    });
   };
 }
 

@@ -1,26 +1,32 @@
 const tableName = "room";
+let roomLibObj;
 class roomLib {
-  static async getRoomDetails(roomId) {
+  static getInstance() {
+    roomLibObj = roomLibObj || new roomLib();
+    return roomLibObj;
+  }
+
+  async getRoomDetails(roomId) {
     return await SQLManager.find(tableName, { roomId: roomId, status: 2 })[0];
   }
 
-  static async getRoomList(query) {
+  async getRoomList(query) {
     return await SQLManager.find(tableName, query);
   }
 
-  static async updateRooms(query, updates) {
+  async updateRooms(query, updates) {
     return await SQLManager.update(tableName, query, updates);
   }
 
-  static async create(roomObj) {
+  async create(roomObj) {
     return await SQLManager.insert(tableName, roomObj);
   }
 
-  static async getCustomRoom(type) {
+  async getCustomRoom(type) {
     return await SQLManager.doExecuteRawQuery(`SELECT * FROM ${tableName} WHERE type = ?`, [type]);
   }
 
-  static async getCustomRoomData(type) {
+  async getCustomRoomData(type) {
     return await SQLManager.doExecuteRawQuery(`SELECT * FROM ${tableName} WHERE type = :type`, { type: type });
   }
 }

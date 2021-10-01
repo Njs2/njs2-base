@@ -1,5 +1,11 @@
 const tableName = "room_user";
+let roomUserLibObj;
 class roomUserLib {
+  static getInstance() {
+    roomUserLibObj = roomUserLibObj || new roomUserLib();
+    return roomUserLibObj;
+  }
+  
   static async getRoomUserDetails(roomUserId) {
     return await SQLManager.find(tableName, { roomUserId: roomUserId, status: 2 })[0];
   }
