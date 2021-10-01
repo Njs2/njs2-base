@@ -49,7 +49,7 @@ class autoLoad {
 
   static loadLibray(type, libraryList) {
     return libraryList.map(library => {
-      return require(path.resolve(process.cwd(), `src/library/${type}/${library}.js`)).getInstance();
+      return require(path.resolve(process.cwd(), `src/library/${type}/${library}.lib.js`)).getInstance();
     });
   };
 }
