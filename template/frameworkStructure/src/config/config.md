@@ -3,7 +3,7 @@ NJS2 config.json file
 
 
 Keys | Values | Description
-| :--- | ---: | :---:
+| :--- | :---: | :---:
 MODE  | DEV/PROD | Deployemnet mode
 SERVER_MODE  | LOCAL/LAMBDA | Server mode
 PROJECT_TITLE | <string> | Project title
@@ -20,7 +20,7 @@ SALT_ROUNDS | <number> | Salt rounds
 ## AUTH Config
 
 Keys | Values | Description
-| :--- | ---: | :---:
+| :--- | :---: | :---:
 AUTH_MODE | JWT/JWT_SQL/JWT_REFRESH | Auth mode
 JWT_SECRET | <string> | JWT secret
 JWT_ID_KEY | <string> | JWT id key
@@ -31,14 +31,14 @@ DB_REFRESH_KEY | <string> | DB refresh key
 
 ## ENCRYPTION Config
 Keys | Values | Description
-| :--- | ---: | :---:
+| :--- | :---: | :---:
 ENCRYPTION_MODE | optional/strict | Encryption mode
 ENCRYPTION_KEY | <string> | Encryption key
 ENCRYPTION_IV | <string> | Encryption iv
 
 ## BASE Config
 Keys | Values | Description
-| :--- | ---: | :---:
+| :--- | :---: | :---:
 USE_LAMBDA_ROLE | YES/NO | Use lambda role - true will use the role and false will use the credentials from below keys
 AWS_REGION | <string> | AWS region
 AWS_ACCESS_KEY_ID | <string> | AWS access key id
@@ -47,7 +47,7 @@ AWS_ROLE_ARN | <string> | AWS role arn
 
 ## SQL Config
 Keys | Values | Description
-| :--- | ---: | :---:
+| :--- | :---: | :---:
 DATABASE_TYPE | mysql/postgresql | Database type
 SQL_DB_HOST | <string> | SQL db host
 SQL_DB_NAME | <string> | SQL db name
