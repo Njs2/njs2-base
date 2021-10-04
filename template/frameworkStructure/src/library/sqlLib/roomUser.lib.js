@@ -1,29 +1,22 @@
-const tableName = "room_user";
-let roomUserLibObj;
 class roomUserLib {
-  static getInstance() {
-    roomUserLibObj = roomUserLibObj || new roomUserLib();
-    return roomUserLibObj;
-  }
-  
-  static async getRoomUserDetails(roomUserId) {
-    return await SQLManager.find(tableName, { roomUserId: roomUserId, status: 2 })[0];
+  async getRoomUserDetails(roomUserId) {
+    return await SQLManager.find("room_user", { roomUserId: roomUserId, status: 2 })[0];
   }
 
-  static async getRoomUserList(query) {
-    return await SQLManager.find(tableName, query);
+  async getRoomUserList(query) {
+    return await SQLManager.find("room_user", query);
   }
 
-  static async updateRoomUsers(query, updates) {
-    return await SQLManager.update(tableName, query, updates);
+  async updateRoomUsers(query, updates) {
+    return await SQLManager.update("room_user", query, updates);
   }
 
-  static async create(roomUserObj) {
-    return await SQLManager.insert(tableName, roomUserObj);
+  async create(roomUserObj) {
+    return await SQLManager.insert("room_user", roomUserObj);
   }
 
-  static async getCustomRoomUser(type) {
-    return await SQLManager.doExecuteRawQuery(`SELECT * FROM ${tableName} WHERE type = ?`, [type]);
+  async getCustomRoomUser(type) {
+    return await SQLManager.doExecuteRawQuery(`SELECT * FROM room_user WHERE type = ?`, [type]);
   }
 }
 
