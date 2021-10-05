@@ -24,7 +24,7 @@ module.exports.handler = async (event) => {
       }
       return result;
     } else if (requestType === 'processRoom') {
-      return await init();
+      return await init(event.content);
     } else if (requestType === 'scheduler') {
 
     }
