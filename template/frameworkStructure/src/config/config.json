@@ -1,0 +1,36 @@
+{
+  "MODE": "DEV",
+  "SERVER_MODE": "LOCAL",
+  "PROJECT_TITLE": "NJS-PROJECT",
+  "PROJECT_DESCRIPTION": "",
+  "PROJECT_VERSION": "0.0.1",
+  "API_ENDPOINT": "http://localhost:3000",
+  "API_PORT": 3000,
+  "SOCKET_SYSTEM_TYPE": "SOCKET_IO",
+  "SOCKET_PORT": 3001,
+  "WSS_BASE_URL": "http://localhost:3001",
+  "CMS_PORT": 3003,
+  "LAMBDA_FUNCTION_NAME": "",
+  "AUTH": {
+    "AUTH_MODE": "JWT",
+    "JWT_SECRET": "123",
+    "JWT_ID_KEY": "user_id",
+    "DB_TABLE_NAME": "user",
+    "DB_ID_KEY": "user_id",
+    "DB_ACCESS_KEY": "access_token",
+    "DB_REFRESH_KEY": ""
+  },
+  "ENCRYPTION": {
+    "ENCRYPTION_MODE": "optional",
+    "ENCRYPTION_KEY": "",
+    "ENCRYPTION_IV": ""
+  },
+  "SALT_ROUNDS": 8,
+  "BASE": {
+    "USE_LAMBDA_ROLE": "YES",
+    "AWS_REGION": "",
+    "AWS_ACCESS_KEY_ID": "",
+    "AWS_SECRET_ACCESS_KEY_ID": "",
+    "AWS_ROLE_ARN": ""
+  }
+}
