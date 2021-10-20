@@ -76,7 +76,7 @@ class baseHelper {
     try {
       return requireDir(pathName);
     } catch (e) {
-      return false;
+      return { error: e.message };
     }
   }
 

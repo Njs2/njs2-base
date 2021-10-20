@@ -51,7 +51,7 @@ class executor {
       const methodClasses = baseHelper.getMethodClasses(pathName);
       if (!methodClasses) {
         this.setResponse('METHOD_NOT_FOUND');
-        throw new Error();
+        throw new Error(methodClasses.error);
       }
 
       // Include required files and initiate instances
