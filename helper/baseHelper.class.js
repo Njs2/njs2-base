@@ -1,4 +1,5 @@
 const requireDir = require('require-dir');
+const querystring = require('querystring');
 const path = require('path');
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
@@ -83,7 +84,11 @@ class baseHelper {
   static parseRequestData(request) {
     let requestData = request.queryStringParameters || {};
 
-    Object.assign(requestData, request.body ? request.body : {});
+    if(typeof request.body == "string"){
+      requestData = querystring.parse(request.body);
+      }else{
+      Object.assign(requestData, request.body ? request.body : {});
+      }
 
     if (request.pathParameters) {
       Object.keys(request.pathParameters).map(key => {
