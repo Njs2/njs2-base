@@ -53,8 +53,14 @@ const RESPONSE = {
       "es": "El estado de encriptación está estrictamente habilitado"
     }
   },
+  METHOD_NOT_LOADED:{
+    responseCode: 100010, responseMessage: {
+      "en": "Error while loading the method !!",
+      "es": "Error al cargar el método !!"
+    }
+  },
   UNKNOWN_ERROR: {
-    responseCode: 100009, responseMessage: {
+    responseCode: 100011, responseMessage: {
       "en": "Something went wrong",
       "es": "Algo salió mal"
     }

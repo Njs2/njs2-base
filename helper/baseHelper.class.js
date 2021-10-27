@@ -64,7 +64,7 @@ class baseHelper {
     }
     return {};
   }
-  
+
   static isFileExpected(params) {
     let fileExpected = false;
     Object.keys(params).map(key => {
@@ -84,11 +84,11 @@ class baseHelper {
   static parseRequestData(request) {
     let requestData = request.queryStringParameters || {};
 
-    if(typeof request.body == "string"){
+    if (typeof request.body == "string") {
       requestData = querystring.parse(request.body);
-      }else{
+    } else {
       Object.assign(requestData, request.body ? request.body : {});
-      }
+    }
 
     if (request.pathParameters) {
       Object.keys(request.pathParameters).map(key => {

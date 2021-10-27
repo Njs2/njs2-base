@@ -8,10 +8,7 @@ module.exports.handler = async (event) => {
     if (requestType === 'API') {
       return await serverless.execute(event);
     } else if (requestType === 'Socket') {
-      let result = {};
-      result = await websockets.handler(event);
-
-      return result;
+      return await websockets.handler(event);
     } else if (requestType === 'processRoom') {
       return await init(event.content);
     } else if (requestType === 'scheduler') {
