@@ -8,21 +8,7 @@ module.exports.handler = async (event) => {
     if (requestType === 'API') {
       return await serverless.execute(event);
     } else if (requestType === 'Socket') {
-      let result = {};
-      switch (event.requestContext.eventType) {
-        case "CONNECT":
-          result = await websockets.connectHandler(event);
-          break;
-
-        case "DISCONNECT":
-          result = await websockets.disconnectHandler(event);
-          break;
-
-        case "MESSAGE":
-          result = await websockets.socketsHandler(event);
-          break;
-      }
-      return result;
+      return await websockets.handler(event);
     } else if (requestType === 'processRoom') {
       return await init(event.content);
     } else if (requestType === 'scheduler') {

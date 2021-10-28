@@ -49,9 +49,9 @@ class executor {
       // Resolve path from methodName
       const pathName = baseHelper.getMethodPath(methodName);
       const methodClasses = baseHelper.getMethodClasses(pathName);
-      if (!methodClasses) {
-        this.setResponse('METHOD_NOT_FOUND');
-        throw new Error();
+      if (methodClasses.error) {
+        this.setResponse('METHOD_NOT_LOADED');
+        throw new Error(methodClasses.error);
       }
 
       // Include required files and initiate instances
