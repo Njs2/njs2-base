@@ -1,6 +1,6 @@
 class roomLib {
   async getRoomDetails(roomId) {
-    return await SQLManager.find("room", { roomId: roomId, status: 2 })[0];
+    return await SQLManager.findOne("room", { roomId: roomId});
   }
 
   async getRoomList(query) {
