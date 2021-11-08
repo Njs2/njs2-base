@@ -5,8 +5,8 @@
 (() => {
     try {
          const commandLineAruments = process.argv.slice(2);
-         // expect 3rd argument to the filename of the cron
-         // require it to extract the default function in that file
+         // expect 3rd argument to be the filename of the job
+         // require it to extract the default function from that file
          const task = require(`./src/tasks/${commandLineAruments[0]}.task.js`);
          // execute the default function
          task();
