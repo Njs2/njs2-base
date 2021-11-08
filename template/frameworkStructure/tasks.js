@@ -1,8 +1,7 @@
 // DO NOT CHANGE THE BODY OF THIS FILE
 // This file will be used by the Crontab to execute your configured Scheduled Jobs
-// e.g.: */10 * * * * * /usr/local/bin/node "/Users/Admin/Desktop/Test Projects/njs2-ludo-main/tasks.js leaderboardUpdate"
-// above example is formatted as follows:
 // <cron pattern> <path to nodejs executable>/node <path to this tasks file>/tasks <filename of the task without task.js>
+// e.g.: * * * * *  /path to nodejs/node /path to project/tasks.js testTask"
 (() => {
     try {
          const commandLineAruments = process.argv.slice(2);
