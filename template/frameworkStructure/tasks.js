@@ -1,11 +1,13 @@
 // DO NOT CHANGE THE BODY OF THIS FILE
-// This file is being used by the Crontab to execute your scheduled jobs
+// This file will be used by the Crontab to execute your configured Scheduled Jobs
+// e.g.: */10 * * * * * /usr/local/bin/node "/Users/Admin/Desktop/Test Projects/njs2-ludo-main/tasks.js leaderboardUpdate"
+// above example is formatted as follows:
+// <cron pattern> <path to nodejs executable>/node <path to this tasks file>/tasks <filename of the task without task.js>
 (() => {
     try {
-         // to run the tasks via the Crontab, this file will be used
-         // e.g.: * * * * * node <path to current tasks file>/tasks <filename of the task without task.js>
-         var commandLineAruments = process.argv.slice(2);
-         // TODO: to resolve the correct task file, append src/tasks/<commandLineAruments[0]>.task.js
+         const commandLineAruments = process.argv.slice(2);
+         // expect 3rd argument to the filename of the cron
+         // require it to extract the default function in that file
          const task = require(`./src/tasks/${commandLineAruments[0]}.task.js`);
          // execute the default function
          task();
