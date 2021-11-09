@@ -1,10 +1,9 @@
-const requireDir = require('require-dir');
-const queryString = require('query-string');
-const path = require('path');
+const requireDir = require("require-dir");
+const queryString = require("query-string");
+const path = require("path");
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class baseHelper {
-
   static getMethodName(pathParameters) {
     return pathParameters ? pathParameters.proxy : pathParameters;
   }
@@ -30,10 +29,16 @@ class baseHelper {
   }
 
   static isValidRequestMethod(httpMethod, requestMethod) {
-    if (typeof requestMethod == "string" && httpMethod.toUpperCase() !== requestMethod.toUpperCase()) {
+    if (
+      typeof requestMethod == "string" &&
+      httpMethod.toUpperCase() !== requestMethod.toUpperCase()
+    ) {
       return false;
     }
-    if (typeof requestMethod == "object" && !requestMethod.includes(httpMethod)) {
+    if (
+      typeof requestMethod == "object" &&
+      !requestMethod.includes(httpMethod)
+    ) {
       return false;
     }
     return true;
@@ -41,15 +46,28 @@ class baseHelper {
 
   static getCustomRoute(methodName) {
     let pathParameters;
-    const requestMap = httpRequest.filter(request => {
+    const requestMap = httpRequest.filter((request) => {
       const pathVal = request.path.replace(/\/:[a-z]+\w+/g, "");
-      const pathParamVal = methodName.split(pathVal).filter((el) => el.length != 0).length
-        ? methodName.split(pathVal).filter((el) => el.length != 0)[0].split('/').filter((el) => el.length != 0)
+      const pathParamVal = methodName
+        .split(pathVal)
+        .filter((el) => el.length != 0).length
+        ? methodName
+            .split(pathVal)
+            .filter((el) => el.length != 0)[0]
+            .split("/")
+            .filter((el) => el.length != 0)
         : [];
-      const pathParamKeys = request.path.match(/\/:[a-z]+\w+/g) ? request.path.match(/\/:[a-z]+\w+/g).map(paramKey => paramKey.replace('/:', '')) : [];
+      const pathParamKeys = request.path.match(/\/:[a-z]+\w+/g)
+        ? request.path
+            .match(/\/:[a-z]+\w+/g)
+            .map((paramKey) => paramKey.replace("/:", ""))
+        : [];
       if (pathParamKeys.length == 0 && pathVal == methodName) {
         return true;
-      } else if (methodName.search(pathVal) == 0 && pathParamKeys.length == pathParamVal.length) {
+      } else if (
+        methodName.search(pathVal) == 0 &&
+        pathParamKeys.length == pathParamVal.length
+      ) {
         pathParameters = {};
         pathParamKeys.map((key, index) => {
           pathParameters[key] = pathParamVal[index];
@@ -67,8 +85,8 @@ class baseHelper {
 
   static isFileExpected(params) {
     let fileExpected = false;
-    Object.keys(params).map(key => {
-      if (params[key].type == 'file') fileExpected = true;
+    Object.keys(params).map((key) => {
+      if (params[key].type == "file") fileExpected = true;
     });
     return fileExpected;
   }
@@ -77,7 +95,9 @@ class baseHelper {
     try {
       return requireDir(pathName);
     } catch (e) {
-      return { error: e.message };
+      return e.code == "MODULE_NOT_FOUND"
+        ? { error: e.toString().split("\n")[0] }
+        : { error: e.message };
     }
   }
 
@@ -91,7 +111,7 @@ class baseHelper {
     }
 
     if (request.pathParameters) {
-      Object.keys(request.pathParameters).map(key => {
+      Object.keys(request.pathParameters).map((key) => {
         requestData
           ? (requestData[key] = request.pathParameters[key])
           : (requestData = { [key]: request.pathParameters[key] });
