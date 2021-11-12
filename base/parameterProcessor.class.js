@@ -46,7 +46,7 @@ class ParameterProcessor {
       case "number":
         res = Number(requestData);
         // set error response if a parameter is specified in request but is not an integer
-        if (isNaN(res)) {
+        if (isNaN(res)|| requestData === "") {
           return;
         }
         break;
@@ -76,7 +76,7 @@ class ParameterProcessor {
   setDefaultParameters(paramData, requestData) {
     let res = requestData;
     if (!requestData) {
-      if (paramData.type == "number" && paramData.default !== "") {
+      if (paramData.type == "number" && paramData.default !== "" && requestData === undefined) {
         res = Number(paramData.default);
       } else if (paramData.type == "string" && paramData.default !== "") {
         res = paramData.default.toString();
