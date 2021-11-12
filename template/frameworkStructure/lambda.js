@@ -12,7 +12,12 @@ module.exports.handler = async (event) => {
     } else if (requestType === 'processRoom') {
       return await init(event.content);
     } else if (requestType === 'scheduler') {
-
+      // get the taskName from AWS EventBridge
+      const taskName = event.stageVariables.taskName;
+      // require the file by taskName
+      const task = require(`./src/tasks/${taskName}.task.js`);
+      // call default of taskName
+      task();
     }
   } catch (error) {
     console.error(error);
