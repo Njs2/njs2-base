@@ -1,15 +1,6 @@
 const { init<function-name>Model } = require("./model/<class-name>");
 
-class <class-name>Lib {
-  async create<function-name>(data) {
-    try {
-      let <class-name>Model = await init<function-name>Model();
-      let new<class-name> = new <class-name>Model(data);
-      return new<class-name>.save();
-    } catch (e) {
-      console.log(e);
-    }
-  }
+class <class-name> {
 
   async get<function-name>Detail(query, options = []) {
     try {
@@ -31,6 +22,16 @@ class <class-name>Lib {
     }
   }
 
+  async create<function-name>(data) {
+    try {
+      let <class-name>Model = await init<function-name>Model();
+      let new<function-name> = new <class-name>Model(data);
+      return new<function-name>.save();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  
   async delete<function-name>(query) {
     try {
       let <class-name>Model = await init<function-name>Model();
@@ -41,6 +42,6 @@ class <class-name>Lib {
   }
 }
 
-module.exports = <class-name>Lib;
+module.exports = <class-name>;
 
    

@@ -1,4 +1,4 @@
-class <class-name>Lib {   
+class <class-name> {   
     async get<function-name>Detail(<class-name>_id) {
       return await SQLManager.findOne(<class-name>, { <class-name>_id: <class-name>_id });
     }
@@ -20,4 +20,4 @@ class <class-name>Lib {
     }
   }
   
-  module.exports = <class-name>Lib;
+  module.exports = <class-name>;
