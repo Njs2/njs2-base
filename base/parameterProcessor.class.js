@@ -8,7 +8,7 @@ class ParameterProcessor {
 
   //checks if all the parameters given in request has been specified in init script. if not removes them from requestData object
   removeUndefinedParameters(requestData) {
-    if (!["number", "string"].includes(typeof requestData) || (typeof requestData == "object" && !requestData)) {
+    if (!["number", "string","object"].includes(typeof requestData) || (typeof requestData == "object" && !requestData)) {
       return;
     }
     return requestData;
@@ -58,7 +58,7 @@ class ParameterProcessor {
 
       case "file":
         // check if json has keys "type" = "file", "fileName", content and Content-Type
-        if (requestData.type != "file" || !requestData.fileName || !requestData.contentType || !requestData.content) {
+        if (requestData.type != "file" || !requestData.filename || !requestData.contentType || !requestData.content) {
           return false;
         }
         res = requestData;
