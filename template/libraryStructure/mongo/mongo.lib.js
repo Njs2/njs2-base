@@ -11,6 +11,15 @@ class <class-name> {
     }
   }
 
+  async get<function-name>List(query, options = []) {
+    try {
+      let <class-name>Model = await init<function-name>Model();
+      return await <class-name>Model.find(query).lean();
+    } catch (e) {
+      console.log(e);
+    }
+  }
+  
   async update<function-name>(query, data) {
     try {
       let <class-name>Model = await init<function-name>Model();
