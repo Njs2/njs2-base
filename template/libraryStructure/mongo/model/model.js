@@ -13,7 +13,7 @@ const init<function-name>Model = async () => {
 
     return <class-name>Model;
   } catch (err) {
-    logger.error(err);
+    console.error(err);
     return null;
   }
 };
