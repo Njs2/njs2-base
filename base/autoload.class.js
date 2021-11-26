@@ -4,6 +4,7 @@ MONGOManager = null;
 REDISManager = null;
 // TODO: Naming convention
 GLB = null;
+SOCKETManager = null;
 
 class autoLoad {
 
@@ -22,6 +23,7 @@ class autoLoad {
     }
 
     GLB = require(path.join(process.cwd(), "src/global/index.js"));
+    SOCKETManager = require("../sockets/index").sockets;
   };
 
   static loadModules(moduleList = []) {

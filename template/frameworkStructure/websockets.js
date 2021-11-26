@@ -22,14 +22,24 @@ module.exports.handler = async (event) => {
 
     switch (event.requestContext.eventType) {
       case 'CONNECT':
-        wsEvent.httpMethod = 'GET';
+        wsEvent.httpMethod = "GET";
         wsEvent.requestId = null;
-        wsEvent.headers = {};
+        wsEvent.headers = event.queryStringParameters.access_token
+        ? {
+        access_token: event.queryStringParameters.access_token,
+        }
+        : {};
         wsEvent.pathParameters = {
-          proxy: CONNECTION_HANDLER_METHOD
+        proxy: CONNECTION_HANDLER_METHOD,
         };
-        CONNECTION_HANDLER_METHOD && await executeRequests(event.requestContext.connectionId, wsEvent);
-        break;
+        delete event.queryStringParameters.access_token;
+        wsEvent.queryStringParameters = {
+        socket_id: event.requestContext.connectionId,
+        ...event.queryStringParameters,
+        };
+        CONNECTION_HANDLER_METHOD &&
+        (await executeRequests(event.requestContext.connectionId, wsEvent));
+        break ; 
 
       case 'DISCONNECT':
         wsEvent.httpMethod = 'GET';
