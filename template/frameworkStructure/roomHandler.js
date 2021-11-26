@@ -1,3 +1,9 @@
+/**
+ * Make sure ypu have this file  in the project  : /src/library/roomHandler/init.js
+ * With the below content :
+ * module.exports = async (obj) => {};
+ */
+
 const awsHelper = require('@njs2/base/helper/awsHelper');
 
 const handler = () => {

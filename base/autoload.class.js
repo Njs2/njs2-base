@@ -1,6 +1,7 @@
 const path = require('path');
 SQLManager = null;
-MongoManager = null;
+MONGOManager = null;
+REDISManager = null;
 // TODO: Naming convention
 GLB = null;
 
@@ -36,7 +37,9 @@ class autoLoad {
       if (module == '@njs2/sql') {
         SQLManager = require('@njs2/sql');
       } else if (module == '@njs2/mongo') {
-        MongoManager = require('@njs2/mongo');
+        MONGOManager = require('@njs2/mongo');
+      }else if(module == '@njs2/redis'){
+        REDISManager = require('@njs2/redis');
       }
     });
   };
