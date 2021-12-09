@@ -33,30 +33,31 @@ app.all("*", async (req, res) => {
     proxy: req.path.length ? req.path.slice(1) : req.path
   };
   executorReq.headers = req.headers;
-  if(!req.files.length){
-    return res.send({
-      responseCode: 400,
-      responseMessage: "No file found !",
-      responseData: {},
-    })
-  }
-  if (req.files.length > 1 ) {
-    return res.send({
-      responseCode: 400,
-      responseMessage: "Only one file upload at a time is allowed",
-      responseData: {},
-    })
-
-  }
-  req.files.forEach(file => {
-    executorReq.body[file.fieldname] = {
-      type: 'file',
-      filename: file.originalname,
-      contentType: file.mimetype,
-      content: file.buffer
+  if(req.files){
+    if(!req.files.length){
+      return res.send({
+        responseCode: 400,
+        responseMessage: "No file found !",
+        responseData: {},
+      })
     }
-  });
-
+    if (req.files.length > 1 ) {
+      return res.send({
+        responseCode: 400,
+        responseMessage: "Only one file upload at a time is allowed",
+        responseData: {},
+      })
+  
+    }
+    req.files.forEach(file => {
+      executorReq.body[file.fieldname] = {
+        type: 'file',
+        filename: file.originalname,
+        contentType: file.mimetype,
+        content: file.buffer
+      }
+    });
+  }
   const executor = new Executor();
   const result = await executor.executeRequest(executorReq);
   return res.send(result);

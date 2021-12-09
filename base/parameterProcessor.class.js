@@ -58,7 +58,7 @@ class ParameterProcessor {
 
       case "file":
         // check if json has keys "type" = "file", "fileName", content and Content-Type
-        if (requestData.type != "file" || !requestData.filename || !requestData.contentType || !requestData.content) {
+        if (requestData && (requestData.type != "file" || !requestData.filename || !requestData.contentType || !requestData.content)) {
           return false;
         }
         res = requestData;
