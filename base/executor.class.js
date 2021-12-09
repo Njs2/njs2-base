@@ -115,7 +115,7 @@ class executor {
       
       // If encryption mode is enabled then encrypt the response data
       if (encryptionState) {
-        this.responseData = encrypt(JSON.stringify(this.responseData));
+        this.responseData = new URLSearchParams({data: encrypt(this.responseData)}).toString().replace("data=",'');
       }
 
       return {
