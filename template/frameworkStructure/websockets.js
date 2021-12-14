@@ -32,7 +32,11 @@ module.exports.handler = async (event) => {
         wsEvent.pathParameters = {
         proxy: CONNECTION_HANDLER_METHOD,
         };
-        delete event.queryStringParameters.access_token;
+        if (
+          event.queryStringParameters &&
+          event.queryStringParameters.access_token
+        )
+          delete event.queryStringParameters.access_token;
         wsEvent.queryStringParameters = {
         socket_id: event.requestContext.connectionId,
         ...event.queryStringParameters,
@@ -48,6 +52,7 @@ module.exports.handler = async (event) => {
         wsEvent.pathParameters = {
           proxy: DISCONNECTION_HANDLER_METHOD
         };
+        wsEvent.queryStringParameters = { socket_id: event.requestContext.connectionId }
         DISCONNECTION_HANDLER_METHOD && await executeRequests(event.requestContext.connectionId, wsEvent);
         break;
 

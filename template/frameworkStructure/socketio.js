@@ -39,6 +39,7 @@ module.exports.handler = async (event) => {
         wsEvent.pathParameters = {
           proxy: DISCONNECTION_HANDLER_METHOD
         };
+        wsEvent.queryStringParameters = { socket_id: event.requestContext.connectionId }
         DISCONNECTION_HANDLER_METHOD && await executeRequests(event.requestContext.connectionId, wsEvent);
         break;
 
