@@ -51,7 +51,7 @@ module.exports.handler = async (event) => {
           proxy: body.action
         };
         if (body.method == 'GET') {
-          wsEvent.queryStringParameters = body.body;
+          wsEvent.queryStringParameters = wsEvent.queryStringParameters = { socket_id: event.requestContext.connectionId,...body.body};
         } else if (body.method == 'POST') {
           wsEvent.body = body.body;
         }
