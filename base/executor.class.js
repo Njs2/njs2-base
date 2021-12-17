@@ -160,7 +160,7 @@ class executor {
         return validationResponse;
       };
     } else {
-      validationResponse.data = { [DB_ID_KEY]: decodedVal[JWT_ID_KEY] };
+      validationResponse.data = { [JWT_ID_KEY]: decodedVal[JWT_ID_KEY] };
       return validationResponse;
     }
 
