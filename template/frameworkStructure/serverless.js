@@ -16,8 +16,8 @@ module.exports.execute = async (event) => {
 
     if (
       event.headers["Content-Type"] &&
-      event.headers["Content-Type"].indexOf("multipart/form-data") === 0
-    ) {
+      event.headers["Content-Type"].indexOf("multipart/form-data") === 0 ||
+      event.headers['content-type'] && event.headers['content-type'].indexOf('multipart/form-data') === 0) {
 
       if (event.body && event.body.match(/filename/g)) {
         fileCount = event.body.match(/filename/g).length;
