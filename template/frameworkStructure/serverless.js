@@ -16,29 +16,14 @@ module.exports.execute = async (event) => {
 
     if (
       event.headers["Content-Type"] &&
-      event.headers["Content-Type"].indexOf("multipart/form-data") === 0
-    ) {
-     
-      if(event.body.match(/filename/g)){  
-        fileCount = event.body.match(/filename/g).length
-       }else{
-         return {
-           statusCode: 200,
-           headers: {
-             "Access-Control-Allow-Origin": "*",
-             "Access-Control-Allow-Credentials": true,
-           },
-           body: JSON.stringify({
-             responseCode: 400,
-             responseMessage: "No File Found !!", 
-             responseData: {},
-           }),
-         };
-       }
-      if (fileCount == 1) {
-        const multipart = require("aws-multipart-parser");
-        event.body = multipart.parse(event, true);
-      } else {
+      event.headers["Content-Type"].indexOf("multipart/form-data") === 0 ||
+      event.headers['content-type'] && event.headers['content-type'].indexOf('multipart/form-data') === 0) {
+
+      if (event.body && event.body.match(/filename/g)) {
+        fileCount = event.body.match(/filename/g).length;
+      }
+
+      if (fileCount > 1) {
         return {
           statusCode: 200,
           headers: {
@@ -47,10 +32,13 @@ module.exports.execute = async (event) => {
           },
           body: JSON.stringify({
             responseCode: 400,
-            responseMessage: "Only one file upload at a time is allowed", 
+            responseMessage: "Only one file upload at a time is allowed",
             responseData: {},
           }),
         };
+      } else {
+        const multipart = require("aws-multipart-parser");
+        event.body = multipart.parse(event, true);
       }
     }
     const executor = new Executor();

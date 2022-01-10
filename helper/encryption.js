@@ -4,6 +4,9 @@ const { ENCRYPTION_KEY: key, ENCRYPTION_IV: secretiv } = JSON.parse(process.env.
 const algorithm = "aes-256-cbc";
 
 function encrypt(text) {
+  if(typeof text === 'object'){
+    text = JSON.stringify(text);
+  }
   let keystring = crypto.createHash('sha256').update(String(key)).digest('hex').substr(0, 32);
   let ivv = crypto.createHash('sha256').update(String(secretiv)).digest('hex').substr(0, 16);
 
@@ -14,6 +17,7 @@ function encrypt(text) {
 
 
 function decrypt(encrypted) {
+  encrypted = encrypted ? encrypted.toString().replace(" ", "+"):"";
   try {
     let buff = Buffer.from(encrypted, 'base64');
     let text = buff.toString('ascii');
@@ -35,7 +39,13 @@ function decrypt(encrypted) {
 
       let dec = decipher.update(encrypted, "base64", 'utf8')
       dec += decipher.final();
-      return dec;
+      // return dec
+      try{
+      return JSON.parse(dec);
+      }
+      catch{
+        return dec;
+      }
     } catch {
       return JSON.stringify(encrypted);
     }

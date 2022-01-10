@@ -33,14 +33,7 @@ app.all("*", async (req, res) => {
     proxy: req.path.length ? req.path.slice(1) : req.path
   };
   executorReq.headers = req.headers;
-  if(req.files){
-    if(!req.files.length){
-      return res.send({
-        responseCode: 400,
-        responseMessage: "No file found !",
-        responseData: {},
-      })
-    }
+  if(req.files && req.files.length) {
     if (req.files.length > 1 ) {
       return res.send({
         responseCode: 400,
