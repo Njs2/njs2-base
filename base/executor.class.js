@@ -75,7 +75,7 @@ class executor {
           this.setResponse(error.errorCode, {
             paramName: error.parameterName
           });
-          throw new Error();
+          throw new Error(error.errorCode+' : '+error.parameterName);
         }
         actionInstance.setMemberVariable('userObj', data);
       }
@@ -103,7 +103,7 @@ class executor {
           this.setResponse(error.errorCode, {
             paramName: error.parameterName
           });
-          throw new Error();
+          throw new Error(error.errorCode+' : '+error.parameterName)
         }
         actionInstance.setMemberVariable(paramName, value);
       }
@@ -115,7 +115,8 @@ class executor {
       
       // If encryption mode is enabled then encrypt the response data
       if (encryptionState) {
-        this.responseData = new URLSearchParams({data: encrypt(this.responseData)}).toString().replace("data=",'');
+        // this.responseData = new URLSearchParams({data: encrypt(this.responseData)}).toString().replace("data=",'');
+        this.responseData = encrypt(this.responseData);
       }
 
       return {
