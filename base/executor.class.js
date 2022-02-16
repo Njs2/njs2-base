@@ -63,13 +63,13 @@ class executor {
       }
 
       // Validate request method with initializer
-      if (!baseHelper.isValidRequestMethod(request.httpMethod, initInstance.pkgInitializer.requestMethod)) {
+      if (!baseHelper.isValidRequestMethod(request.httpMethod, initInstance.initializer.requestMethod)) {
         this.setResponse('INVALID_REQUEST_METHOD');
         throw new Error();
       }
 
       // if secured endpoint validate access token
-      if (initInstance.pkgInitializer.isSecured) {
+      if (initInstance.initializer.isSecured) {
         const { error, data } = await this.validateAccesstoken(accessToken);
         if (error) {
           this.setResponse(error.errorCode, {
