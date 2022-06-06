@@ -31,14 +31,28 @@ class baseAction {
     this[`${paramName}`] = value;
     return true;
   }
-
+  
   loadPkg(packageName) {
-    let packageVals = packageName.split('/');
-    return require(path.resolve(
+    let packageVal = packageName.split('/');
+    let packageJsonData = require(path.resolve(
       process.cwd(),
-      `njs2_modules/${[...packageVals.slice(0, packageVals.length - 1), "methods", ...packageVals.slice(packageVals.length - 1)].join('/')}/index`
-    ))();
+      `njs2_modules/${packageVal[0]}/package.json`
+    ));
+    if(packageJsonData['njs2-type'] === "endpoint") {
+      let packageVals = packageName.split('/');
+      return require(path.resolve(
+        process.cwd(),
+        `njs2_modules/${[...packageVals.slice(0, packageVals.length - 1), "methods", ...packageVals.slice(packageVals.length - 1)].join('/')}/index`
+      ))();
+    }else if(packageJsonData['njs2-type'] === "helper") {
+      return require(path.resolve(
+        process.cwd(),
+        `njs2_modules/${packageName}/index`
+      ));
+    }
+ 
   }
+
 
   // TODO: revisit later to reposition this function/responsibilities
   getResponseList() {
