@@ -3,9 +3,9 @@ class <method-name>Initalize extends baseInitialize {
 
   constructor() {
     super();
-    this.pkgInitializer =  {};
-    this.pkgInitializer.isSecured = <is-secured>; // values: true/false
-    this.pkgInitializer.requestMethod = ['<method-type>']; // requestMethod: ['GET', 'POST', 'PUT', 'DELETE']
+    this.initializer =  {};
+    this.initializer.isSecured = <is-secured>; // values: true/false
+    this.initializer.requestMethod = ['<method-type>']; // requestMethod: ['GET', 'POST', 'PUT', 'DELETE']
   }
 
   getParameter() {
