@@ -52,14 +52,14 @@ class ParameterProcessor {
         break;
 
       case "string":
-        if (!requestData) return false;
+        if (!requestData) return;
         res = requestData.toString();
         break;
 
       case "file":
         // check if json has keys "type" = "file", "fileName", content and Content-Type
         if (requestData && (requestData.type != "file" || !requestData.filename || !requestData.contentType || !requestData.content)) {
-          return false;
+          return;
         }
         res = requestData;
         break;
@@ -75,7 +75,7 @@ class ParameterProcessor {
   //then set that default value for that parameter in the request
   setDefaultParameters(paramData, requestData) {
     let res = requestData;
-    if (!requestData) {
+    if (!requestData && paramData.required) {
       if (paramData.type == "number" && paramData.default !== "" && requestData === undefined) {
         res = Number(paramData.default);
       } else if (paramData.type == "string" && paramData.default !== "") {
