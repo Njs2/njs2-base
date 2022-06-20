@@ -13,6 +13,10 @@ class GlobalMethods {
     });
   };
 
+  static loadEmailTemplate(packageName, templateName) {
+   return require(path.join(process.cwd(), `/njs2_modules/${packageName}/templates/${templateName}`));
+   };
+
 }
 
 module.exports = GlobalMethods;

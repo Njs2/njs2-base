@@ -58,6 +58,10 @@ class autoLoad {
       return new LibClass();
     });
   };
+
+  static loadEmailTemplate(packageName, templateName) {
+   return require(process.cwd(),"njs2_modules/"+packageName+"templates/"+templateName);
+  };
 }
 
 module.exports = autoLoad;
