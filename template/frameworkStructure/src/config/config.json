@@ -32,5 +32,16 @@
     "AWS_ACCESS_KEY_ID": "",
     "AWS_SECRET_ACCESS_KEY_ID": "",
     "AWS_ROLE_ARN": ""
+  },
+  "SCHEDULER": {
+    "local": {
+      "mCron": [
+        {
+          "name": "local",
+          "time": 1,
+          "active": true
+        }
+      ]
+    }
   }
 }

@@ -52,8 +52,13 @@ class baseAction {
     }
  
   }
-
-
+  static loadTask(packageName,mCronDetails){
+    return require(path.join(process.cwd(),"njs2_modules/" +
+    packageName +
+    "/task/" +
+    mCronDetails.name +
+    ".task"));
+    }
   // TODO: revisit later to reposition this function/responsibilities
   getResponseList() {
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
