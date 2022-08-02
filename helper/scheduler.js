@@ -1,23 +1,35 @@
 const path = require("path");
 const {SCHEDULER} = require(path.join(process.cwd(), "src/config/config.json"));
+const baseAction = require("../base/baseAction.class");
 class Scheduler{
     static loadFunctions (){
         let functionArray =[];
         for (let packageName in SCHEDULER) {
-            let mCronFunctions = SCHEDULER[packageName].mCron;
+          let mCronFunctions = SCHEDULER[packageName].mCron;
+          if(packageName === "local"){
             mCronFunctions.forEach((mCronDetails) => {
               if (mCronDetails.active) {
-                let functionInit = require(path.join(process.cwd(),"njs2_modules/" +
-                  packageName +
-                  "/task/" +
-                  mCronDetails.name +
-                  ".task"));
+                let functionInit = require(path.join(process.cwd(),
+                "src/tasks/" +
+                mCronDetails.name +
+                ".task"));
                 functionArray.push({
                   initFunction: functionInit,
                   initFunctionInterval: mCronDetails.time,
                 });
               }
             });
+          }else{
+            mCronFunctions.forEach((mCronDetails) => {
+              if (mCronDetails.active) {
+                let functionInit =  baseAction.loadTask(packageName,mCronDetails);
+                functionArray.push({
+                  initFunction: functionInit,
+                  initFunctionInterval: mCronDetails.time,
+                });
+              }
+            });
+          }
           }
           return functionArray;
     }
