@@ -19,20 +19,5 @@
     "MongoManager": true,
     "GLB": true
   },
-  "rules": {},
-  "overrides": [
-    {
-      "files": [
-        "cms/**/*.js",
-        "base/**/*.js",
-        "helper/**/*.js",
-        "i18n/**/*.js",
-        "sockets/**/*.js",
-        "template/**/*.js"
-      ], // Or *.test.js
-      "rules": {
-        "require-jsdoc": "off"
-      }
-    }
-  ]
+  "rules": {}
 }
