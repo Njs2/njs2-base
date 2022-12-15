@@ -11,6 +11,7 @@ class <method-name>Action extends baseAction {
       return res.data;
     } catch (e) {
       console.log("Error: <method-name>", e);
+      throw e;
     }
   };
 
