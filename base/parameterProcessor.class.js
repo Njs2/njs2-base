@@ -42,7 +42,7 @@ class ParameterProcessor {
   //converts all the request parameters to the specified type(number and string)
   convertToGivenParameterType(paramData, requestData) {
     let res;
-    switch (paramData.type) {
+    switch (paramData.type.toLowerCase()) {
       case "number":
         res = Number(requestData);
         // set error response if a parameter is specified in request but is not an integer
@@ -55,6 +55,20 @@ class ParameterProcessor {
         if (!requestData) return;
         res = requestData.toString();
         break;
+      
+      case "object": 
+        if(!requestData) return;
+        
+        if ( typeof requestData === 'object' ) {
+          res = requestData;
+        }
+
+        try {
+          res = JSON.parse(requestData);
+        } catch (e) {
+          // TO VERIFY: Either throw error to front error or return what sent to handler.
+          res = requestData;
+        }
 
       case "file":
         // check if json has keys "type" = "file", "fileName", content and Content-Type
@@ -63,7 +77,7 @@ class ParameterProcessor {
         }
         res = requestData;
         break;
-
+   
       default:
         res = requestData;
         break;
