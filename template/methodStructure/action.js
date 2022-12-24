@@ -10,7 +10,7 @@ class <method-name>Action extends baseAction {
       this.setResponse('SUCCESS');
       return {};
     } catch (e) {
-      console.log(`Error: ${<method-name>}`, e);
+      console.log(`Error: API: <method-name>`, e);
       throw e;
     }
   };
