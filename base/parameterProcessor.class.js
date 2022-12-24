@@ -69,8 +69,9 @@ class ParameterProcessor {
           // TO VERIFY: Either throw error to front error or return what sent to handler.
           res = requestData;
         }
-
-      case "file":
+        break;
+      
+        case "file":
         // check if json has keys "type" = "file", "fileName", content and Content-Type
         if (requestData && (requestData.type != "file" || !requestData.filename || !requestData.contentType || !requestData.content)) {
           return;
