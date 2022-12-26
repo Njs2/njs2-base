@@ -1,4 +1,5 @@
 const path = require('path');
+const merge = require('deepmerge')
 SQLManager = null;
 MONGOManager = null;
 REDISManager = null;
@@ -10,20 +11,54 @@ class autoLoad {
 
   // TODO: Naming convention
   static loadConfig() {
-    const envConfig = require(path.join(process.cwd(), `/src/config/config.json`));
+    try {
 
-    for (const k in envConfig) {
-      if (!process.env[k] || process.env[k].length == 0) {
-        if (typeof envConfig[k] == "object") {
-          process.env[k] = JSON.stringify(envConfig[k]);
-        } else {
-          process.env[k] = envConfig[k];
-        }
+      let finalConfigs = {}
+      const projectConfigs = require(path.join(process.cwd(), `src/config/config.json`));
+      for (const k in projectConfigs) {
+          if (typeof projectConfigs[k] == "object") {
+              finalConfigs[k] = projectConfigs[k];
+          } else {
+              const projectConfigValue = `${projectConfigs[k]}`
+              if(projectConfigValue && projectConfigValue.startsWith("__")) {
+                  finalConfigs[k] = "";
+              } else {
+                  finalConfigs[k] = projectConfigValue;
+              }
+              
+          }
       }
-    }
+      const customConfigs = require(path.join(process.cwd(), `/custom_config.json`));
+      for (const k in customConfigs) {
+          if (finalConfigs[k] !== undefined) {
+            if (typeof customConfigs[k] == "object") {
+                finalConfigs[k] = JSON.stringify(merge(finalConfigs[k], customConfigs[k]))
+            } else {
+                finalConfigs[k] = customConfigs[k];
+            }
+          } else {
+              throw new Error(`${k} not found in config.json!`)
+          }
+      }
 
-    GLB = require(path.join(process.cwd(), "src/global/index.js"));
-    SOCKETManager = require("../sockets/index").sockets;
+      process.env = {...process.env, ...finalConfigs}
+
+      console.log({...process.env})
+
+      // Load Constrants to GLB
+      GLB = require(path.join(process.cwd(), "src/global/index.js"));
+      // Load Realtime Method(s) to SOCKETManager
+      SOCKETManager = require("../sockets/index").sockets;
+      
+    
+    } catch (error) {
+        console.error("Cannot Continue processing API!")
+        if (error.code == "MODULE_NOT_FOUND") {
+            throw new Error("Either config.json or custom_config.json are not present!")
+        } else {
+            throw new Error(error)
+        }
+    }
   };
 
   static loadModules(moduleList = []) {
