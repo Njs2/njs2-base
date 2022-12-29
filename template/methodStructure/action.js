@@ -2,10 +2,17 @@
 class <method-name>Action extends baseAction {
 
   async executeMethod() {
-    let { inpVals } = this;
     
-    this.setResponse('SUCCESS');
-    return {};
+    try {
+      let { inpVals } = this; 
+      
+      
+      this.setResponse('SUCCESS');
+      return {};
+    } catch (e) {
+      console.log(`Error: API: <method-name>`, e);
+      throw e;
+    }
   };
 
 }
