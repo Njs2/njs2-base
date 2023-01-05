@@ -23,26 +23,39 @@ class ParameterProcessor {
   }
 
   validateParameters(param, requestData) {
+    
     let responseObj = { error: null, value: null };
-    // Check Type of parameter
-    let paramData = this.convertToGivenParameterType(param, requestData);
 
-    //Check if param is declared as Mandatory or Optional in InitClass
-    let validatedData = this.verifyRequiredParameter(param, paramData);
-    if (validatedData.error) {
-      responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
+    try {
+    
+      // Check Type of parameter
+      let paramData = this.convertToGivenParameterType(param, requestData);
+
+      //Check if param is declared as Mandatory or Optional in InitClass
+      let validatedData = this.verifyRequiredParameter(param, paramData);
+      if (validatedData.error) {
+        responseObj.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: param.name };
+        return responseObj;
+      }
+
+      //Set Default value to param when it is Optional
+      responseObj.value = this.setDefaultParameters(param, validatedData.data);
       return responseObj;
-    }
+    } catch (e) {
 
-    //Set Default value to param when it is Optional
-    responseObj.value = this.setDefaultParameters(param, validatedData.data);
-    return responseObj;
+      console.log("ValidateParameters: ",e);    
+      if( e.errorCode )
+        responseObj.error = { errorCode: e.errorCode, parameterName: param.name }
+      else
+        responseObj.error = {errorCode: "UNKNOWN_ERROR"};
+      return responseObj
+    }
   }
 
   //converts all the request parameters to the specified type(number and string)
   convertToGivenParameterType(paramData, requestData) {
     let res;
-    switch (paramData.type) {
+    switch (paramData.type.toLowerCase()) {
       case "number":
         res = Number(requestData);
         // set error response if a parameter is specified in request but is not an integer
@@ -54,6 +67,21 @@ class ParameterProcessor {
       case "string":
         if (!requestData) return;
         res = requestData.toString();
+        break;
+      
+      case "object": 
+        if (!requestData) return;
+        if ( typeof requestData === "object" ){
+          res = requestData;
+          break;
+        }
+
+        try {
+          res = JSON.parse(requestData);
+        } catch (error) {
+          error.errorCode = "INVALID_INPUT_JSON";
+          throw error
+        }
         break;
 
       case "file":
