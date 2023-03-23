@@ -126,7 +126,7 @@ class executor {
       };
     } catch (e) {
       console.log("Exception caught", e);
-      const { responseCode, responseMessage } = this.getResponse(e === "NODE_VERSION_ERROR" ? e : "");
+      const { responseCode, responseMessage } = this.getResponse();
       if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
       return {
         responseCode,
@@ -197,7 +197,7 @@ class executor {
     if (packageName) {
       try {
         let packageVals = packageName.split('/');
-        const PACKAGE_RESPONSE = require(path.resolve(process.cwd(), `node_modules/${[...packageVals.slice(0, packageVals.length - 1)].join('/')}/contract/response.json`));
+        const PACKAGE_RESPONSE = require(path.resolve(process.cwd(), `njs2_modules/${[...packageVals.slice(0, packageVals.length - 1)].join('/')}/contract/response.json`));
         RESP = { ...RESP, ...PACKAGE_RESPONSE };
       } catch {
       }

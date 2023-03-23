@@ -64,12 +64,6 @@ const RESPONSE = {
       "en": "Something went wrong",
       "es": "Algo salió mal"
     }
-  },
-  NODE_VERSION_ERROR: {
-    responseCode: 100012, responseMessage: {
-      "en": "Runtime Node version and plugin version does not match. Please use the appropriate node version.",
-      "es": ""
-    }
   }
 };
 
