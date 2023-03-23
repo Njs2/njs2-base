@@ -33,27 +33,34 @@ class baseAction {
   }
   
   loadPkg(packageName) {
-    let packageVal = packageName.split('/');
-    let packageJsonData = require(path.resolve(
-      process.cwd(),
-      `njs2_modules/${packageVal[0]}/package.json`
-    ));
-    if(packageJsonData['njs2-type'] === "endpoint") {
-      let packageVals = packageName.split('/');
-      return require(path.resolve(
+    try {
+      let packageVal = packageName.split('/');
+      let packageJsonData = require(path.resolve(
         process.cwd(),
-        `njs2_modules/${[...packageVals.slice(0, packageVals.length - 1), "methods", ...packageVals.slice(packageVals.length - 1)].join('/')}/index`
-      ))();
-    }else if(packageJsonData['njs2-type'] === "helper") {
-      return require(path.resolve(
-        process.cwd(),
-        `njs2_modules/${packageName}/index`
+        `node_modules/${packageVal[0]}/${packageVal[1]}/package.json`
       ));
-    }
- 
+      if(packageJsonData['njs2-type'] === "endpoint") {
+        let packageVals = packageName.split('/');
+        let methodResponse = require(path.resolve(
+          process.cwd(),
+          `node_modules/${[...packageVals.slice(0, packageVals.length - 1), "methods", ...packageVals.slice(packageVals.length - 1)].join('/')}/index`
+        ))();
+        return methodResponse;
+      } else if(packageJsonData['njs2-type'] === "helper") {
+        return require(path.resolve(
+          process.cwd(),
+          `node_modules/${packageName}/index`
+          ));
+        }
+      } catch(error) {
+        console.log("**********VERSION ERROR************", error);
+        if(error.message === "Invalid or incompatible cached data (cachedDataRejected)") {
+          throw "NODE_VERSION_ERROR";
+        }
+      }
   }
   static loadTask(packageName,mCronDetails){
-    return require(path.join(process.cwd(),"njs2_modules/" +
+    return require(path.join(process.cwd(),"node_modules/" +
     packageName +
     "/task/" +
     mCronDetails.name +
@@ -68,8 +75,8 @@ class baseAction {
     const packageJson = require(path.resolve(process.cwd(), 'package.json'));
     Object.keys(packageJson.dependencies).map(pkg => {
       console.log(path.resolve(process.cwd(), `njs2_modules/${pkg}/contract/response.json`));
-      if (fs.existsSync(path.resolve(process.cwd(), `njs2_modules/${pkg}/contract/response.json`))) {
-        const pkgPath = path.resolve(process.cwd(), `njs2_modules/${pkg}/contract/response.json`);
+      if (fs.existsSync(path.resolve(process.cwd(), `node_modules/${pkg}/contract/response.json`))) {
+        const pkgPath = path.resolve(process.cwd(), `node_modules/${pkg}/contract/response.json`);
         const pkgResponse = require(pkgPath);
         RESP = [...RESP, ...Object.values(pkgResponse)];
       }
