@@ -62,7 +62,7 @@ class Scheduler{
 
       let crons = SCHEDULER[cronName].cron;
 
-      if(!isValidCronDetails(crons)) continue;
+      if(!this.isValidCronDetails(crons)) continue;
   
       // Get cron details from current project 
       if(cronName === "local") {
@@ -80,7 +80,10 @@ class Scheduler{
               // Check for cron invoke time
               if(nextInvokedAt.hour === now.getHours() && nextInvokedAt.minute === now.getMinutes()) {
   
-                const functionInit = require(`./src/tasks/${cronDetails.name}.task`);
+                const functionInit = require(path.join(process.cwd(),
+                "src/tasks/" +
+                cronDetails.name +
+                ".task"));
                 const functionDetails = {
                   initFunction: functionInit
                 };
