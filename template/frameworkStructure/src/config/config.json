@@ -47,6 +47,13 @@
           "active": true,
           "runInLambda": false
         }
+      ],
+      "cron": [
+        {
+          "name": "local",
+          "time": "* * * * *",
+          "active": true
+        }
       ]
     }
   }

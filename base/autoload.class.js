@@ -60,7 +60,7 @@ class autoLoad {
   };
 
   static loadEmailTemplate(packageName, templateName) {
-   return require(process.cwd(),"njs2_modules/"+packageName+"templates/"+templateName);
+   return require(process.cwd(),"node_modules/"+packageName+"templates/"+templateName);
   };
 }
 
