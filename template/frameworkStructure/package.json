@@ -16,7 +16,8 @@
     "eslint-config-njs2-lint": "^1.0.0",
     "nodemon": "^2.0.12",
     "prettier": "2.0.5",
-    "serverless-prune-plugin": "^1.5.1"
+    "serverless-prune-plugin": "^1.5.1",
+    "aws-sdk": "^2.1345.0"
   },
   "dependencies": {
   }
