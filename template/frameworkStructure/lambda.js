@@ -9,15 +9,16 @@ module.exports.handler = async (event) => {
       return await serverless.execute(event);
     } else if (requestType === 'Socket') {
       return await websockets.handler(event);
-    } else if (requestType === 'processRoom') {
-      //return await init(event.content);
-    } else if (requestType === 'scheduler') {
-      // get the taskName from AWS EventBridge
+    } else if (requestType === 'mCron') {
+      // get the taskName
       const taskName = event.stageVariables.taskName;
       // require the file by taskName
-      const task = require(`./src/tasks/${taskName}.task.js`);
+      const mCron = require(`./src/tasks/${taskName}.task.js`);
       // call default of taskName
-      task();
+      mCron();
+    } else if (requestType === 'cron') {
+      const cron = require(`./cron`);
+      cron();
     }
   } catch (error) {
     console.error(error);
