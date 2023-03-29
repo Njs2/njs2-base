@@ -44,6 +44,14 @@
         {
           "name": "local",
           "time": 1,
+          "active": true,
+          "runInLambda": false
+        }
+      ],
+      "cron": [
+        {
+          "name": "local",
+          "time": "* * * * *",
           "active": true
         }
       ]

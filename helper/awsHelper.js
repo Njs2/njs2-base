@@ -66,7 +66,7 @@ awsHelper.executeFromLambda = async (functionDetail) => {
           "content-type" : "application/x-www-form-urlencoded"            
         },
         "stageVariables": {
-          "requestType": "cron",
+          "requestType": "mCron",
           "taskName": functionDetail.name
         } 
       }

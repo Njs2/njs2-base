@@ -81,10 +81,9 @@ class Scheduler{
               if(nextInvokedAt.hour === now.getHours() && nextInvokedAt.minute === now.getMinutes()) {
   
                 const functionInit = require(path.join(process.cwd(),
-                  "src/tasks/" +
-                  cronDetails.name +
-                  ".task"
-                ));
+                "src/tasks/" +
+                cronDetails.name +
+                ".task"));
                 const functionDetails = {
                   initFunction: functionInit
                 };
