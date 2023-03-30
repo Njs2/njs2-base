@@ -67,7 +67,7 @@ awsHelper.executeFromLambda = async (functionDetail) => {
         },
         "stageVariables": {
           "requestType": "mCron",
-          "taskName": functionDetail.name
+          "taskName": functionDetail.functionName
         } 
       }
       
