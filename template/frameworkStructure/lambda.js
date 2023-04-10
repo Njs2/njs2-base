@@ -1,5 +1,6 @@
 const serverless = require('./serverless'); 
 const websockets = require('./websockets');
+const Scheduler = require("@njs2/base/helper/scheduler");
 //const init = require('./src/library/roomHandler/init');  // Make sure to create this file and add defualt content.
 
 module.exports.handler = async (event) => {
@@ -13,7 +14,7 @@ module.exports.handler = async (event) => {
       // get the taskName
       const taskName = event.stageVariables.taskName;
       // require the file by taskName
-      const mCron = require(`./src/tasks/${taskName}.task.js`);
+      const mCron = Scheduler.loadInitmCronFunction(taskName);
       // call default of taskName
       mCron();
     } else if (requestType === 'cron') {

@@ -13,28 +13,38 @@ class Scheduler{
           if(packageName === "local"){
             mCronFunctions.forEach((mCronDetails) => {
               if (mCronDetails.active) {
-                let functionInit = require(path.join(process.cwd(),
-                "src/tasks/" +
-                mCronDetails.name +
-                ".task"));
-                functionArray.push({
-                  functionName: mCronDetails.name,
-                  initFunction: functionInit,
-                  initFunctionInterval: mCronDetails.time,
-                  runInLambda: mCronDetails.runInLambda,
-                });
+                if(mCronDetails.time <= 60) {
+                  let functionInit = require(path.join(process.cwd(),
+                  "src/tasks/" +
+                  mCronDetails.name +
+                  ".task"));
+                  functionArray.push({
+                    functionName: mCronDetails.name,
+                    initFunction: functionInit,
+                    initFunctionInterval: mCronDetails.time,
+                    runInLambda: mCronDetails.runInLambda,
+                  });
+                } else {
+                  console.log(`mCron: ${mCronDetails.name} interval can not exceed 60 seconds.
+                  If you want to set time interval above 60 seconds please use add the credentials to cron section in SCHEDULER section`);
+                }
               }
             });
           }else{
             mCronFunctions.forEach((mCronDetails) => {
               if (mCronDetails.active) {
-                let functionInit =  baseAction.loadTask(packageName,mCronDetails);
-                functionArray.push({
-                  functionName: mCronDetails.name,
-                  initFunction: functionInit,
-                  initFunctionInterval: mCronDetails.time,
-                  runInLambda: mCronDetails.runInLambda
-                });
+                if(mCronDetails.time <= 60) {
+                  let functionInit =  baseAction.loadTask(packageName,mCronDetails);
+                  functionArray.push({
+                    functionName: mCronDetails.name,
+                    initFunction: functionInit,
+                    initFunctionInterval: mCronDetails.time,
+                    runInLambda: mCronDetails.runInLambda,
+                  });
+                } else {
+                  console.log(`mCron: ${mCronDetails.name} interval can not exceed 60 seconds.
+                  If you want to set time interval above 60 seconds please use add the credentials to cron section in SCHEDULER section`);
+                }
               }
             });
           }
@@ -125,6 +135,28 @@ class Scheduler{
   static isValidCronDetails(crons) {
     return Array.isArray(crons);
   }
+
+  static loadInitmCronFunction(functionName) {
+
+    for(let pluginName in SCHEDULER) {
+      let mCronFunctions = SCHEDULER[pluginName].mCron;
+
+      for(let mCronDetails of mCronFunctions) {
+        if(functionName === mCronDetails.name) {
+          if(pluginName === "local") {
+            return require(path.join(process.cwd(),
+              `src/tasks/${functionName}.task`
+            ));
+          } else {
+            // Get task for specific Node Version
+            return baseAction.loadTask(pluginName, {name: functionName});
+          }
+        }
+      }
+    }
+    
+  }
+
 }
 
 module.exports = Scheduler;
