@@ -64,6 +64,12 @@ const RESPONSE = {
       "en": "Something went wrong",
       "es": "Algo salió mal"
     }
+  },
+  INVALID_INPUT_JSON:{ 
+    responseCode: 100012, responseMessage: {
+      "en": "paramName should be a valid JSON",
+      "es": "paramName debe ser un JSON válido"
+    }
   }
 };
 
