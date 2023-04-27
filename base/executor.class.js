@@ -150,7 +150,7 @@ class executor {
     const decodedVal = await jwt.decodeJwtToken(accessToken, JWT_SECRET);
 
     if (!decodedVal || !decodedVal[JWT_ID_KEY]) {
-      validationResponse.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: 'access_token' };
+      validationResponse.error = { errorCode: "INVALID_ACCESS_TOKEN", parameterName: 'access_token' };
       return validationResponse;
     }
 
@@ -165,7 +165,7 @@ class executor {
       return validationResponse;
     }
 
-    validationResponse.error = { errorCode: "INVALID_INPUT_EMPTY", parameterName: 'access_token' };
+    validationResponse.error = { errorCode: "INVALID_ACCESS_TOKEN", parameterName: 'access_token' };
     return validationResponse;
   }
 
