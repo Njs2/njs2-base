@@ -70,6 +70,12 @@ const RESPONSE = {
       "en": "Runtime Node version and plugin version does not match. Please use the appropriate node version.",
       "es": ""
     }
+  },
+  INVALID_STATUS:{
+    responseCode: 100013, responseMessage: {
+      "en": "status should be as mentioned in the type.",
+      "es": "status should be as mentioned in the type."
+    }
   }
 };
 

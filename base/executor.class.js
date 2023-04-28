@@ -105,6 +105,13 @@ class executor {
           });
           throw new Error(error.errorCode+' : '+error.parameterName)
         }
+        const bool = "items" in param;
+        if(bool) {
+          if (!(param.items.includes(parsedData))){
+            this.setResponse('INVALID_STATUS');
+            throw new Error();
+          }
+        }
         actionInstance.setMemberVariable(paramName, value);
       }
 
