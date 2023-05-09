@@ -1,18 +1,18 @@
 const AWS = require('aws-sdk');
 const pjson = require('../package.json');
 const GlobalMethods = require('../helper/globalMethods');
-const [
-  WSS_BASE_URL,
-  USE_LAMBDA_ROLE
-] = GlobalMethods.loadConfig(["WSS_BASE_URL", "USE_LAMBDA_ROLE"], pjson.name);
-const awsHelper = require("../helper/awsHelper");
+const [ WSS_BASE_URL ] = GlobalMethods.loadConfig(["WSS_BASE_URL"], pjson.name);
 
 const emit = async (connectionId, payload) => {
   try {
     if (!connectionId) return;
-    let credentials = USE_LAMBDA_ROLE.toLowerCase() == "yes" ? {} : await awsHelper.getCrossAccountCredentials();
-    credentials.apiVersion = '2018-11-29';
-    credentials.endpoint = WSS_BASE_URL;
+
+    const credentials = {
+      region: '', // AWS APIs would need atleast an empty string in region key
+      apiVersion: '2018-11-29',
+      endpoint: WSS_BASE_URL
+    }
+
     const apiGatewayManagementApi = new AWS.ApiGatewayManagementApi(credentials);
     await apiGatewayManagementApi.postToConnection({
       ConnectionId: connectionId,
