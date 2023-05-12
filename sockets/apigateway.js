@@ -1,14 +1,14 @@
 const AWS = require('aws-sdk');
 const pjson = require('../package.json');
 const GlobalMethods = require('../helper/globalMethods');
-const [ WSS_BASE_URL ] = GlobalMethods.loadConfig(["WSS_BASE_URL"], pjson.name);
+const [ WSS_BASE_URL, LAMBDA ] = GlobalMethods.loadConfig(["WSS_BASE_URL", "LAMBDA"], pjson.name);
 
 const emit = async (connectionId, payload) => {
   try {
     if (!connectionId) return;
 
     const credentials = {
-      region: '', // AWS APIs would need atleast an empty string in region key
+      region: LAMBDA["AWS_REGION"], // AWS APIs would need atleast an empty string in region key
       apiVersion: '2018-11-29',
       endpoint: WSS_BASE_URL
     }

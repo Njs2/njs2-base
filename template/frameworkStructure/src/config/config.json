@@ -31,13 +31,6 @@
     "ENCRYPTION_IV": ""
   },
   "SALT_ROUNDS": 8,
-  "BASE": {
-    "USE_LAMBDA_ROLE": "YES",
-    "AWS_REGION": "",
-    "AWS_ACCESS_KEY_ID": "",
-    "AWS_SECRET_ACCESS_KEY_ID": "",
-    "AWS_ROLE_ARN": ""
-  },
   "SCHEDULER": {
     "local": {
       "mCron": [
