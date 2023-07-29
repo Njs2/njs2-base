@@ -21,9 +21,15 @@ class executor {
 
     try {
       this.setResponse('UNKNOWN_ERROR');
-
+      
+      // Property finding factory
+      const findPropInRequest = deepFindPropMaker(request)
+      
+      // Find the basic variables from the incoming request
       // Initializng basic variables
-      const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
+      const lngKey = findPropInRequest("lng_key")
+      const encState = findPropInRequest("enc_state")
+      const accessToken = findPropInRequest("access_token")
 
       // Decide encryption mode. And enforce enc_state to be true if encryption is Strict
       const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);

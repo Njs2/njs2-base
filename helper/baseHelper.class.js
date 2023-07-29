@@ -120,6 +120,22 @@ class baseHelper {
 
     return requestData ? requestData : {};
   }
+
+  static deepFindPropMaker(obj) {
+    return (prop) => {
+        if (!obj || typeof obj !== 'object') return null;
+        if (obj.hasOwnProperty(prop) && obj[prop] !== null && obj[prop] !== undefined) {
+            return obj[prop];
+        }
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                let found = deepFindPropMaker(obj[key])(prop);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+  }
 }
 
 module.exports = baseHelper;
