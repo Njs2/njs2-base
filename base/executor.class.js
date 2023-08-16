@@ -11,6 +11,8 @@ const ParameterProcessor = require('./parameterProcessor.class');
 const { encrypt, decrypt } = require('../helper/encryption');
 const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalConstants');
 const jwt = require('../helper/jwt');
+const _ = require("lodash");
+const multiReplace = require('string-multiple-replace');
 
 class executor {
   constructor() {
@@ -18,23 +20,21 @@ class executor {
   }
 
   async executeRequest(request) {
-
     try {
       this.setResponse('UNKNOWN_ERROR');
 
       // Initializng basic variables
       const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
-
       // Decide encryption mode. And enforce enc_state to be true if encryption is Strict
       const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
       if (ENCRYPTION_MODE == ENC_MODE.STRICT && encState != ENC_ENABLED) {
         this.setResponse('ENCRYPTION_STATE_STRICTLY_ENABLED');
         throw new Error();
       }
-      const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_ENABLED));
-
+      this.encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_ENABLED));
+      
       // Set member variables
-      this.setMemberVariable('encryptionState', encryptionState);
+      this.setMemberVariable('encryptionState', this.encryptionState);
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
 
       // Finalize methodName including custom route
@@ -87,7 +87,7 @@ class executor {
       let requestData = baseHelper.parseRequestData(request, isFileExpected);
 
       // If encyption is enabled, then decrypt the request data
-      if (!isFileExpected && encryptionState) {
+      if (!isFileExpected &&this.encryptionState) {
         requestData = decrypt(requestData.data);
         if (typeof requestData === 'string')
           requestData = JSON.parse(requestData);
@@ -111,28 +111,14 @@ class executor {
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
       const { responseString, responseOptions, packageName } = actionInstance.getResponseString();
-      const { responseCode, responseMessage } = this.getResponse(responseString, responseOptions, packageName);
-      
-      // If encryption mode is enabled then encrypt the response data
-      if (encryptionState) {
-        // this.responseData = new URLSearchParams({data: encrypt(this.responseData)}).toString().replace("data=",'');
-        this.responseData = encrypt(this.responseData);
-      }
+      const response = this.getResponse(responseString, responseOptions, packageName);
+      return response;
 
-      return {
-        responseCode,
-        responseMessage,
-        responseData: this.responseData
-      };
     } catch (e) {
       console.log("Exception caught", e);
-      const { responseCode, responseMessage } = this.getResponse();
+      const response = this.getResponse(e === "NODE_VERSION_ERROR" ? e : "");
       if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
-      return {
-        responseCode,
-        responseMessage,
-        responseData: {}
-      };
+      return response;
     }
   }
 
@@ -191,13 +177,14 @@ class executor {
     }
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
     const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
+    const CUSTOM_RESPONSE_STRUCTURE = require(path.resolve(process.cwd(), `src/config/customResponseStructure.json`));
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
-
+    //let CUSTOM_RESPONSE_STRUCTURE = {...custom_response};
     if (packageName) {
       try {
         let packageVals = packageName.split('/');
-        const PACKAGE_RESPONSE = require(path.resolve(process.cwd(), `njs2_modules/${[...packageVals.slice(0, packageVals.length - 1)].join('/')}/contract/response.json`));
+        const PACKAGE_RESPONSE = require(path.resolve(process.cwd(), `node_modules/${[...packageVals.slice(0, packageVals.length - 1)].join('/')}/contract/response.json`));
         RESP = { ...RESP, ...PACKAGE_RESPONSE };
       } catch {
       }
@@ -206,24 +193,64 @@ class executor {
     if (!RESP[this.responseString]) {
       RESP = RESP["RESPONSE_CODE_NOT_FOUND"];
     } else {
-      RESP = RESP[this.responseString];
+      RESP = {...RESP[this.responseString]};
     }
 
     this.responseCode = RESP.responseCode;
     this.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key]
       ? RESP.responseMessage[this.lng_key]
       : RESP.responseMessage[DEFAULT_LNG_KEY];
+    RESP.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key]
+      ? RESP.responseMessage[this.lng_key]
+      : RESP.responseMessage[DEFAULT_LNG_KEY];
+    if(this.responseOptions)
+    Object.keys(this.responseOptions).map(keyName => {
+      this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
+    })
+    ;
 
-    if (this.responseOptions)
-      Object.keys(this.responseOptions).map(keyName => {
-        this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
-      });
+    RESP.responseData = this.responseData;
 
-    return {
-      responseCode: this.responseCode,
-      responseMessage: this.responseMessage,
-      responseData: this.responseData
-    };
+    //If no response structure specified or response structure is invalid then return default response
+    if(!CUSTOM_RESPONSE_STRUCTURE) {
+     return {
+       responseCode: this.responseCode,
+       responseMessage: this.responseMessage,
+       responseData: this.encryptionCheck(this.responseData)
+     };
+    }
+    return this.parseResponseData(CUSTOM_RESPONSE_STRUCTURE,RESP);      
+
+  }
+
+  parseResponseData(CUSTOM_RESPONSE_STRUCTURE,RESP){
+    Object.entries(RESP).forEach(array => {
+      const [key,value] = array;
+      if(typeof value === 'object'){
+        RESP[key] = JSON.stringify(value);
+      }
+    });
+
+    let compiled = _.template(typeof CUSTOM_RESPONSE_STRUCTURE === 'string' ? CUSTOM_RESPONSE_STRUCTURE : JSON.stringify(CUSTOM_RESPONSE_STRUCTURE))(RESP);
+
+    const matcherObj = {
+        '"{': '{',
+        '}"': '}',
+    }
+
+    const replacedString =multiReplace(compiled, matcherObj); 
+    console.log(replacedString);
+    return typeof CUSTOM_RESPONSE_STRUCTURE === 'string' ? replacedString : JSON.parse(replacedString);
+
+  }
+
+  // If encryption mode is enabled then encrypt the response data
+  encryptionCheck(value){
+    if (value && this.encryptionState) {
+      // this.responseData = new URLSearchParams({data: encrypt(this.responseData)}).toString().replace("data=",'');
+      value = encrypt(value);
+    }
+    return value;
   }
 }
 
