@@ -31,7 +31,7 @@ class executor {
         this.setResponse('ENCRYPTION_STATE_STRICTLY_ENABLED');
         throw new Error();
       }
-      this.encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_ENABLED));
+      const encryptionState = (ENCRYPTION_MODE == ENC_MODE.STRICT || (ENCRYPTION_MODE == ENC_MODE.OPTIONAL && encState == ENC_ENABLED));
       
       // Set member variables
       this.setMemberVariable('encryptionState', this.encryptionState);
@@ -111,6 +111,13 @@ class executor {
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
       const { responseString, responseOptions, packageName } = actionInstance.getResponseString();
+
+      // If encryption mode is enabled then encrypt the response data
+      if (encryptionState) {
+        // this.responseData = new URLSearchParams({data: encrypt(this.responseData)}).toString().replace("data=",'');
+        this.responseData = encrypt(this.responseData);
+      }
+
       const response = this.getResponse(responseString, responseOptions, packageName);
       return response;
 
@@ -177,10 +184,10 @@ class executor {
     }
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
     const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
-    const CUSTOM_RESPONSE_STRUCTURE = require(path.resolve(process.cwd(), `src/config/customResponseStructure.json`));
+    const CUSTOM_RESPONSE_STRUCTURE = require(path.resolve(process.cwd(), `src/config/responseTemplate.json`));
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
-    //let CUSTOM_RESPONSE_STRUCTURE = {...custom_response};
+
     if (packageName) {
       try {
         let packageVals = packageName.split('/');
@@ -196,29 +203,17 @@ class executor {
       RESP = {...RESP[this.responseString]};
     }
 
-    this.responseCode = RESP.responseCode;
-    this.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key]
-      ? RESP.responseMessage[this.lng_key]
-      : RESP.responseMessage[DEFAULT_LNG_KEY];
     RESP.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key]
       ? RESP.responseMessage[this.lng_key]
       : RESP.responseMessage[DEFAULT_LNG_KEY];
-    if(this.responseOptions)
-    Object.keys(this.responseOptions).map(keyName => {
-      this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
-    })
-    ;
 
     RESP.responseData = this.responseData;
-
-    //If no response structure specified or response structure is invalid then return default response
-    if(!CUSTOM_RESPONSE_STRUCTURE) {
-     return {
-       responseCode: this.responseCode,
-       responseMessage: this.responseMessage,
-       responseData: this.encryptionCheck(this.responseData)
-     };
-    }
+   
+    if(this.responseOptions)
+    Object.keys(this.responseOptions).map(keyName => {
+      RESP.responseMessage = RESP.responseMessage.replace(keyName, this.responseOptions[keyName]);
+    });
+ 
     return this.parseResponseData(CUSTOM_RESPONSE_STRUCTURE,RESP);      
 
   }
@@ -230,7 +225,7 @@ class executor {
         RESP[key] = JSON.stringify(value);
       }
     });
-
+    
     let compiled = _.template(typeof CUSTOM_RESPONSE_STRUCTURE === 'string' ? CUSTOM_RESPONSE_STRUCTURE : JSON.stringify(CUSTOM_RESPONSE_STRUCTURE))(RESP);
 
     const matcherObj = {
@@ -239,18 +234,9 @@ class executor {
     }
 
     const replacedString =multiReplace(compiled, matcherObj); 
-    console.log(replacedString);
+
     return typeof CUSTOM_RESPONSE_STRUCTURE === 'string' ? replacedString : JSON.parse(replacedString);
 
-  }
-
-  // If encryption mode is enabled then encrypt the response data
-  encryptionCheck(value){
-    if (value && this.encryptionState) {
-      // this.responseData = new URLSearchParams({data: encrypt(this.responseData)}).toString().replace("data=",'');
-      value = encrypt(value);
-    }
-    return value;
   }
 }
 
