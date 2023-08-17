@@ -207,7 +207,7 @@ class executor {
       ? RESP.responseMessage[this.lng_key]
       : RESP.responseMessage[DEFAULT_LNG_KEY];
 
-    (typeof this.responseData === 'object' && Object.keys(this.responseData).length) ? RESP = {...RESP, ...this.responseData} : RESP.responseData = this.responseData;
+     RESP.responseData = this.responseData;
 
     if(this.responseOptions)
     Object.keys(this.responseOptions).map(keyName => {
@@ -231,6 +231,8 @@ class executor {
     const matcherObj = {
         '"{': '{',
         '}"': '}',
+        '"[': '[',
+        ']"': ']'
     }
 
     const replacedString =multiReplace(compiled, matcherObj); 
