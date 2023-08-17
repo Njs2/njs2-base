@@ -207,8 +207,8 @@ class executor {
       ? RESP.responseMessage[this.lng_key]
       : RESP.responseMessage[DEFAULT_LNG_KEY];
 
-    RESP.responseData = this.responseData;
-   
+    typeof this.responseData === 'object' ? RESP = {...RESP, ...this.responseData} : RESP.responseData = this.responseData;
+
     if(this.responseOptions)
     Object.keys(this.responseOptions).map(keyName => {
       RESP.responseMessage = RESP.responseMessage.replace(keyName, this.responseOptions[keyName]);
