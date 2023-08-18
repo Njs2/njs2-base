@@ -4,6 +4,28 @@ const path = require("path");
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class baseHelper {
+
+  static getMethodNameForPHP(request) {
+    const { METHOD_KEY } = JSON.parse(process.env.LEGACY_PHP);
+    if (request.headers && request.headers[METHOD_KEY]) {
+      return request.headers[METHOD_KEY];
+    } else if (request.queryStringParameters && request.queryStringParameters[METHOD_KEY]) {
+      return request.queryStringParameters[METHOD_KEY];
+    } else if (request.body && request.body[METHOD_KEY]) {
+      return request.body[METHOD_KEY];
+    }
+  }
+
+  static getAccessTokenForPHP(request) {
+    if(request.queryStringParameters && request.queryStringParameters.access_token) {
+      return request.queryStringParameters.access_token;
+    } else if(request.body && request.body.access_token) {
+      return request.body.access_token;
+    } else if(request.headers && request.headers.access_token) {
+      return request.headers.access_token;
+    }
+  }
+
   static getMethodName(pathParameters) {
     return pathParameters ? pathParameters.proxy : pathParameters;
   }

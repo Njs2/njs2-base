@@ -11,6 +11,10 @@ const ParameterProcessor = require('./parameterProcessor.class');
 const { encrypt, decrypt } = require('../helper/encryption');
 const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalConstants');
 const jwt = require('../helper/jwt');
+const responseStructure = require(path.resolve(
+  process.cwd(),
+  "src/config/responseStructure.json"
+));
 
 class executor {
   constructor() {
@@ -23,7 +27,9 @@ class executor {
       this.setResponse('UNKNOWN_ERROR');
 
       // Initializng basic variables
-      const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
+      const { lng_key: lngKey, enc_state: encState } = request.headers;
+      
+      let accessToken = baseHelper.getAccessTokenForPHP(request);
 
       // Decide encryption mode. And enforce enc_state to be true if encryption is Strict
       const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
@@ -44,6 +50,12 @@ class executor {
       if (customMethodName) {
         request.pathParameters = pathParameters;
         methodName = customMethodName;
+      }
+
+      // Getting the methodName
+      const { NODE_METHOD_NAME } = JSON.parse(process.env.LEGACY_PHP);
+      if(methodName && methodName === NODE_METHOD_NAME) {
+        methodName = baseHelper.getMethodNameForPHP(request);
       }
 
       // Resolve path from methodName
@@ -119,24 +131,95 @@ class executor {
         this.responseData = encrypt(this.responseData);
       }
 
-      return {
-        responseCode,
-        responseMessage,
-        responseData: this.responseData
-      };
+      let responseObj = this.getCustomResponse(responseCode, responseMessage, this.responseData);
+      
+      return responseObj;
     } catch (e) {
       console.log("Exception caught", e);
-      const { responseCode, responseMessage } = this.getResponse();
+      const { responseCode, responseMessage } = this.getResponse(e === "NODE_VERSION_ERROR" ? e : "");
       if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
-      return {
-        responseCode,
-        responseMessage,
-        responseData: {}
-      };
+      
+      let responseObj = this.getCustomResponse(responseCode, responseMessage);
+      return responseObj;
     }
   }
 
   /** HELPER METHODS */
+  isValidResponseStructure(responseStructure) {
+
+    if(responseStructure && typeof responseStructure === "object") {
+
+      // Check if type Array and array is not empty
+      if(Array.isArray(responseStructure) && responseStructure.length !== 0) {
+        return { type: "array", valid: true };
+      }
+
+      // Check if type Object and object is not empty
+      if(Object.keys(responseStructure).length !== 0) {
+        return { type: "object", valid: true };
+      }
+
+    }
+    return { valid: false }; 
+  }
+
+  getCustomResponse = (responseCode, responseMessage, responseData={}) => {
+
+    const response = this.isValidResponseStructure(responseStructure);
+
+    // If no response structure specified or response structure is invalid then return default response
+    if(!response.valid) {
+      return {
+        responseCode,
+        responseMessage,
+        responseData: responseData
+      };
+    }
+
+    // If response structure is array
+    if(response.type === "array") {
+      const responseArray = [];
+
+      for(let response of responseStructure) {
+        if(response === "responseCode") {
+          responseArray.push(responseCode);
+        } else if(response === "responseMessage") {
+          responseArray.push(responseMessage);
+        } else if(response === "responseData") {
+          responseArray.push(responseData.responseData);
+        } else {
+          // TODO: handling additional data
+          // responseArray.push()
+        }
+      }
+      return responseArray;
+    }
+
+    if(response.type === "object") {
+      let responseObj = {};
+      const responseStructureArray = Object.entries(responseStructure);
+
+      for(const responseDetails of responseStructureArray) {
+        const [ responseKey, responseValue ] = responseDetails;
+        if(responseKey === "responseCode") {
+          responseObj[responseValue.key] = responseCode;
+        } else if(responseKey === "responseMessage") {
+          responseObj[responseValue.key] = responseMessage;
+        } else if(responseKey === "responseData") {
+          responseObj[responseValue.key] = responseData;
+        } else {
+          // TODO: get additional data from API response else assign default value
+          responseObj[responseValue.key] = responseData.responseKey ? responseData.responseKey : responseValue.default;
+        }
+      }
+
+      // responseObj[[responseStructure["responseCode"]]] = responseCode;
+      // responseObj[[responseStructure["responseMessage"]]] = responseMessage;
+      // responseObj[[responseStructure["responseData"]]] = responseData;
+
+      return responseObj;
+    }
+  }
 
   // TODO: In future we will move this to an Authorization class
   validateAccesstoken = async (accessToken) => {
