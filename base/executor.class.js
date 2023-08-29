@@ -13,6 +13,7 @@ const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalCons
 const jwt = require('../helper/jwt');
 const _ = require("lodash");
 const multiReplace = require('string-multiple-replace');
+const fs = require("fs");
 
 class executor {
   constructor() {
@@ -184,7 +185,14 @@ class executor {
     }
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
     const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
-    const CUSTOM_RESPONSE_STRUCTURE = require(path.resolve(process.cwd(), `src/config/responseTemplate.json`));
+
+    let CUSTOM_RESPONSE_TEMPLATE,responseTemplate;
+    try{
+      CUSTOM_RESPONSE_TEMPLATE = require(path.resolve(process.cwd(), `src/config/responseTemplate.json`));
+      responseTemplate = this.isValidResponseStructure(CUSTOM_RESPONSE_TEMPLATE);
+    }catch(error){
+      responseTemplate = this.isValidResponseStructure("");
+    }
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
@@ -214,32 +222,58 @@ class executor {
       RESP.responseMessage = RESP.responseMessage.replace(keyName, this.responseOptions[keyName]);
     });
  
-    return this.parseResponseData(CUSTOM_RESPONSE_STRUCTURE,RESP);      
+    return this.parseResponseData(responseTemplate,RESP);      
 
   }
 
-  parseResponseData(CUSTOM_RESPONSE_STRUCTURE,RESP){
-    Object.entries(RESP).forEach(array => {
-      const [key,value] = array;
-      if(typeof value === 'object'){
-        RESP[key] = JSON.stringify(value);
+  parseResponseData(responseTemplate,RESP){
+    try{
+      Object.entries(RESP).forEach(array => {
+        const [key,value] = array;
+        if(typeof value === 'object'){
+          RESP[key] = JSON.stringify(value);
+        }
+      });
+      
+      const compiled = _.template(typeof responseTemplate === 'string' ? responseTemplate : JSON.stringify(responseTemplate));
+
+      const resultTemplate = compiled(RESP);
+
+      const matcherObj = {
+          '"{': '{',
+          '}"': '}',
+          '"[': '[',
+          ']"': ']'
       }
-    });
-    
-    let compiled = _.template(typeof CUSTOM_RESPONSE_STRUCTURE === 'string' ? CUSTOM_RESPONSE_STRUCTURE : JSON.stringify(CUSTOM_RESPONSE_STRUCTURE))(RESP);
 
-    const matcherObj = {
-        '"{': '{',
-        '}"': '}',
-        '"[': '[',
-        ']"': ']'
+      const replacedString =multiReplace(resultTemplate, matcherObj); 
+
+      return typeof responseTemplate === 'string' ? replacedString : JSON.parse(replacedString);
+    }catch(error){
+      throw new Error("parseResponseData Error:"+error);
     }
-
-    const replacedString =multiReplace(compiled, matcherObj); 
-
-    return typeof CUSTOM_RESPONSE_STRUCTURE === 'string' ? replacedString : JSON.parse(replacedString);
-
   }
+
+  isValidResponseStructure(CUSTOM_RESPONSE_TEMPLATE){
+    // Check if type Object and object is empty or Check if type Array and array is not empty
+    if(
+      CUSTOM_RESPONSE_TEMPLATE && 
+      Object.prototype.toString.call(CUSTOM_RESPONSE_TEMPLATE) === '[object Object]' && 
+      Object.keys(CUSTOM_RESPONSE_TEMPLATE).length === 0 ||  
+      Array.isArray(CUSTOM_RESPONSE_TEMPLATE) && 
+      CUSTOM_RESPONSE_TEMPLATE.length === 0 || 
+      CUSTOM_RESPONSE_TEMPLATE === ""
+    ) {
+      CUSTOM_RESPONSE_TEMPLATE={
+          "responseCode":"<%=responseCode%>",
+          "responseMessage":"<%=responseMessage%>",
+          "responseData":"<%=responseData%>"
+        }
+    }
+    fs.writeFileSync(path.resolve(process.cwd(), `src/config/responseTemplate.json`), JSON.stringify(CUSTOM_RESPONSE_TEMPLATE), 'utf8');
+    return CUSTOM_RESPONSE_TEMPLATE; 
+  }
+  
 }
 
 module.exports = executor;
