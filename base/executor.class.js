@@ -13,7 +13,6 @@ const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalCons
 const jwt = require('../helper/jwt');
 const _ = require("lodash");
 const multiReplace = require('string-multiple-replace');
-const fs = require("fs");
 
 class executor {
   constructor() {
