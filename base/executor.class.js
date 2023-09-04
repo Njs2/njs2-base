@@ -186,13 +186,7 @@ class executor {
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
     const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
 
-    let CUSTOM_RESPONSE_TEMPLATE,responseTemplate;
-    try{
-      CUSTOM_RESPONSE_TEMPLATE = require(path.resolve(process.cwd(), `src/config/responseTemplate.json`));
-      responseTemplate = this.isValidResponseStructure(CUSTOM_RESPONSE_TEMPLATE);
-    }catch(error){
-      responseTemplate = this.isValidResponseStructure("");
-    }
+    const CUSTOM_RESPONSE_TEMPLATE = require(path.resolve(process.cwd(), `src/config/responseTemplate.json`));
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
@@ -222,11 +216,11 @@ class executor {
       RESP.responseMessage = RESP.responseMessage.replace(keyName, this.responseOptions[keyName]);
     });
  
-    return this.parseResponseData(responseTemplate,RESP);      
+    return this.parseResponseData(CUSTOM_RESPONSE_TEMPLATE,RESP);      
 
   }
 
-  parseResponseData(responseTemplate,RESP){
+  parseResponseData(CUSTOM_RESPONSE_TEMPLATE,RESP){
     try{
       Object.entries(RESP).forEach(array => {
         const [key,value] = array;
@@ -235,7 +229,7 @@ class executor {
         }
       });
       
-      const compiled = _.template(typeof responseTemplate === 'string' ? responseTemplate : JSON.stringify(responseTemplate));
+      const compiled = _.template(typeof CUSTOM_RESPONSE_TEMPLATE === 'string' ? CUSTOM_RESPONSE_TEMPLATE : JSON.stringify(CUSTOM_RESPONSE_TEMPLATE));
 
       const resultTemplate = compiled(RESP);
 
@@ -248,30 +242,10 @@ class executor {
 
       const replacedString =multiReplace(resultTemplate, matcherObj); 
 
-      return typeof responseTemplate === 'string' ? replacedString : JSON.parse(replacedString);
+      return typeof CUSTOM_RESPONSE_TEMPLATE === 'string' ? replacedString : JSON.parse(replacedString);
     }catch(error){
       throw new Error("parseResponseData Error:"+error);
     }
-  }
-
-  isValidResponseStructure(CUSTOM_RESPONSE_TEMPLATE){
-    // Check if type Object and object is empty or Check if type Array and array is not empty
-    if(
-      CUSTOM_RESPONSE_TEMPLATE && 
-      Object.prototype.toString.call(CUSTOM_RESPONSE_TEMPLATE) === '[object Object]' && 
-      Object.keys(CUSTOM_RESPONSE_TEMPLATE).length === 0 ||  
-      Array.isArray(CUSTOM_RESPONSE_TEMPLATE) && 
-      CUSTOM_RESPONSE_TEMPLATE.length === 0 || 
-      CUSTOM_RESPONSE_TEMPLATE === ""
-    ) {
-      CUSTOM_RESPONSE_TEMPLATE={
-          "responseCode":"<%=responseCode%>",
-          "responseMessage":"<%=responseMessage%>",
-          "responseData":"<%=responseData%>"
-        }
-    }
-    fs.writeFileSync(path.resolve(process.cwd(), `src/config/responseTemplate.json`), JSON.stringify(CUSTOM_RESPONSE_TEMPLATE), 'utf8');
-    return CUSTOM_RESPONSE_TEMPLATE; 
   }
   
 }
