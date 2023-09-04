@@ -11,10 +11,8 @@ const ParameterProcessor = require('./parameterProcessor.class');
 const { encrypt, decrypt } = require('../helper/encryption');
 const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalConstants');
 const jwt = require('../helper/jwt');
-const responseStructure = require(path.resolve(
-  process.cwd(),
-  "src/config/responseStructure.json"
-));
+const _ = require("lodash");
+const multiReplace = require('string-multiple-replace');
 
 class executor {
   constructor() {
@@ -26,10 +24,9 @@ class executor {
     try {
       this.setResponse('UNKNOWN_ERROR');
 
-      // Initializng basic variables
+      // Initializing basic variables
       const { lng_key: lngKey, enc_state: encState } = request.headers;
-      
-      let accessToken = baseHelper.getAccessTokenForPHP(request);
+      const accessToken = baseHelper.getAccessToken(request);
 
       // Decide encryption mode. And enforce enc_state to be true if encryption is Strict
       const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
@@ -44,18 +41,16 @@ class executor {
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
 
       // Finalize methodName including custom route
-      let methodName = baseHelper.getMethodName(request.pathParameters);
+      let methodName = baseHelper.getMethodName(request);
+      if (methodName.error) {
+        this.setResponse("METHOD_NOT_FOUND");
+        throw new Error(methodName.error);
+      }
       request.pathParameters = null;
       const { customMethodName, pathParameters } = baseHelper.getCustomRoute(methodName);
       if (customMethodName) {
         request.pathParameters = pathParameters;
         methodName = customMethodName;
-      }
-
-      // Getting the methodName
-      const { NODE_METHOD_NAME } = JSON.parse(process.env.LEGACY_PHP);
-      if(methodName && methodName === NODE_METHOD_NAME) {
-        methodName = baseHelper.getMethodNameForPHP(request);
       }
 
       // Resolve path from methodName
@@ -98,7 +93,7 @@ class executor {
       const isFileExpected = baseHelper.isFileExpected(params);
       let requestData = baseHelper.parseRequestData(request, isFileExpected);
 
-      // If encyption is enabled, then decrypt the request data
+      // If encryption is enabled, then decrypt the request data
       if (!isFileExpected && encryptionState) {
         requestData = decrypt(requestData.data);
         if (typeof requestData === 'string')
@@ -106,7 +101,7 @@ class executor {
       }
       requestData = requestData ? requestData : {};
 
-      // Proccess and validate each parameters and set it as member variable
+      // Process and validate each parameters and set it as member variable
       for (let paramName in params) {
         let param = params[paramName];
         const parsedData = await parameterProcessor.processParameter(requestData[param.name]);
@@ -131,93 +126,21 @@ class executor {
         this.responseData = encrypt(this.responseData);
       }
 
-      let responseObj = this.getCustomResponse(responseCode, responseMessage, this.responseData);
-      
-      return responseObj;
-    } catch (e) {
-      console.log("Exception caught", e);
-      const { responseCode, responseMessage } = this.getResponse(e === "NODE_VERSION_ERROR" ? e : "");
-      if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
-      
-      let responseObj = this.getCustomResponse(responseCode, responseMessage);
-      return responseObj;
-    }
-  }
-
-  /** HELPER METHODS */
-  isValidResponseStructure(responseStructure) {
-
-    if(responseStructure && typeof responseStructure === "object") {
-
-      // Check if type Array and array is not empty
-      if(Array.isArray(responseStructure) && responseStructure.length !== 0) {
-        return { type: "array", valid: true };
-      }
-
-      // Check if type Object and object is not empty
-      if(Object.keys(responseStructure).length !== 0) {
-        return { type: "object", valid: true };
-      }
-
-    }
-    return { valid: false }; 
-  }
-
-  getCustomResponse = (responseCode, responseMessage, responseData={}) => {
-
-    const response = this.isValidResponseStructure(responseStructure);
-
-    // If no response structure specified or response structure is invalid then return default response
-    if(!response.valid) {
       return {
         responseCode,
         responseMessage,
-        responseData: responseData
+        responseData: this.responseData
       };
-    }
+    } catch (e) {
+      console.log("Exception caught", e);
+      const { responseCode, responseMessage } = this.getResponse();
+      if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
 
-    // If response structure is array
-    if(response.type === "array") {
-      const responseArray = [];
-
-      for(let response of responseStructure) {
-        if(response === "responseCode") {
-          responseArray.push(responseCode);
-        } else if(response === "responseMessage") {
-          responseArray.push(responseMessage);
-        } else if(response === "responseData") {
-          responseArray.push(responseData.responseData);
-        } else {
-          // TODO: handling additional data
-          // responseArray.push()
-        }
-      }
-      return responseArray;
-    }
-
-    if(response.type === "object") {
-      let responseObj = {};
-      const responseStructureArray = Object.entries(responseStructure);
-
-      for(const responseDetails of responseStructureArray) {
-        const [ responseKey, responseValue ] = responseDetails;
-        if(responseKey === "responseCode") {
-          responseObj[responseValue.key] = responseCode;
-        } else if(responseKey === "responseMessage") {
-          responseObj[responseValue.key] = responseMessage;
-        } else if(responseKey === "responseData") {
-          responseObj[responseValue.key] = responseData;
-        } else {
-          // TODO: get additional data from API response else assign default value
-          responseObj[responseValue.key] = responseData.responseKey ? responseData.responseKey : responseValue.default;
-        }
-      }
-
-      // responseObj[[responseStructure["responseCode"]]] = responseCode;
-      // responseObj[[responseStructure["responseMessage"]]] = responseMessage;
-      // responseObj[[responseStructure["responseData"]]] = responseData;
-
-      return responseObj;
+      return {
+        responseCode,
+        responseMessage,
+        responseData: {}
+      };
     }
   }
 
@@ -275,6 +198,8 @@ class executor {
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
     const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
 
+    const CUSTOM_RESPONSE_TEMPLATE = require(path.resolve(process.cwd(), `src/config/responseTemplate.json`));
+
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
     if (packageName) {
@@ -289,25 +214,50 @@ class executor {
     if (!RESP[this.responseString]) {
       RESP = RESP["RESPONSE_CODE_NOT_FOUND"];
     } else {
-      RESP = RESP[this.responseString];
+      RESP = {...RESP[this.responseString]};
     }
 
-    this.responseCode = RESP.responseCode;
-    this.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key]
+    RESP.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key]
       ? RESP.responseMessage[this.lng_key]
       : RESP.responseMessage[DEFAULT_LNG_KEY];
 
+    RESP.responseData = this.responseData;
+
     if (this.responseOptions)
       Object.keys(this.responseOptions).map(keyName => {
-        this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
-      });
+        RESP.responseMessage = RESP.responseMessage.replace(keyName, this.responseOptions[keyName]);      });
 
-    return {
-      responseCode: this.responseCode,
-      responseMessage: this.responseMessage,
-      responseData: this.responseData
-    };
+    return this.parseResponseData(CUSTOM_RESPONSE_TEMPLATE,RESP); 
   }
+
+  parseResponseData(CUSTOM_RESPONSE_TEMPLATE,RESP){
+    try{
+      Object.entries(RESP).forEach(array => {
+        const [key,value] = array;
+        if(typeof value === 'object'){
+          RESP[key] = JSON.stringify(value);
+        }
+      });
+      
+      const compiled = _.template(typeof CUSTOM_RESPONSE_TEMPLATE === 'string' ? CUSTOM_RESPONSE_TEMPLATE : JSON.stringify(CUSTOM_RESPONSE_TEMPLATE));
+
+      const resultTemplate = compiled(RESP);
+
+      const matcherObj = {
+          '"{': '{',
+          '}"': '}',
+          '"[': '[',
+          ']"': ']'
+      }
+
+      const replacedString =multiReplace(resultTemplate, matcherObj); 
+
+      return typeof CUSTOM_RESPONSE_TEMPLATE === 'string' ? replacedString : JSON.parse(replacedString);
+    }catch(error){
+      throw new Error("parseResponseData Error:"+error);
+    }
+  }
+  
 }
 
 module.exports = executor;
