@@ -118,7 +118,6 @@ class executor {
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
       const { responseString, responseOptions, packageName } = actionInstance.getResponseString();
-      const { responseCode, responseMessage } = this.getResponse(responseString, responseOptions, packageName);
       
       // If encryption mode is enabled then encrypt the response data
       if (encryptionState) {
@@ -126,21 +125,15 @@ class executor {
         this.responseData = encrypt(this.responseData);
       }
 
-      return {
-        responseCode,
-        responseMessage,
-        responseData: this.responseData
-      };
+      const response = this.getResponse(responseString, responseOptions, packageName);
+
+
+      return response;
     } catch (e) {
       console.log("Exception caught", e);
-      const { responseCode, responseMessage } = this.getResponse();
+      const response = this.getResponse(e === "NODE VERSION ERROR" ? e : "");
       if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
-
-      return {
-        responseCode,
-        responseMessage,
-        responseData: {}
-      };
+      return response;
     }
   }
 
