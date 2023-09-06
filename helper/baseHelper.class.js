@@ -4,8 +4,34 @@ const path = require("path");
 const httpRequest = require(path.join(process.cwd(), "src/config/route.json"));
 const baseMethodsPath = path.join(process.cwd(), "src/methods/");
 class baseHelper {
-  static getMethodName(pathParameters) {
-    return pathParameters ? pathParameters.proxy : pathParameters;
+
+  static getAccessToken(request) {
+    let access_token = ""
+    if(request.headers && request.headers.access_token) {
+      access_token = request.headers.access_token;
+    } else if(request.queryStringParameters && request.queryStringParameters.access_token) {
+      access_token = request.queryStringParameters.access_token;
+    } else if(request.body && request.body.access_token) {
+      access_token = request.body.access_token;
+    }
+    return access_token;
+  }
+
+  static getMethodName(request) {
+    let methodName = request.pathParameters ? request.pathParameters.proxy : request.pathParameters;
+    // Getting the methodName for legacy php
+    const { NODE_METHOD_NAME, METHOD_KEY } = JSON.parse(process.env.LEGACY_PHP);
+    if(methodName === NODE_METHOD_NAME) {
+      if (request.headers && request.headers[METHOD_KEY]) {
+        methodName = request.headers[METHOD_KEY];
+      } else if (request.queryStringParameters && request.queryStringParameters[METHOD_KEY]) {
+        methodName = request.queryStringParameters[METHOD_KEY];
+      } else if (request.body && request.body[METHOD_KEY]) {
+        methodName = request.body[METHOD_KEY];
+      }
+    }
+    if(!methodName) throw "METHOD_NOT_FOUND";
+    return methodName;
   }
 
   static capitalizeFirstLetter(string) {

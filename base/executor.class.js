@@ -11,6 +11,8 @@ const ParameterProcessor = require('./parameterProcessor.class');
 const { encrypt, decrypt } = require('../helper/encryption');
 const { ENC_MODE, DEFAULT_LNG_KEY, ENC_ENABLED } = require('../helper/globalConstants');
 const jwt = require('../helper/jwt');
+const _ = require("lodash");
+const multiReplace = require('string-multiple-replace');
 
 class executor {
   constructor() {
@@ -22,8 +24,9 @@ class executor {
     try {
       this.setResponse('UNKNOWN_ERROR');
 
-      // Initializng basic variables
-      const { lng_key: lngKey, access_token: accessToken, enc_state: encState } = request.headers;
+      // Initializing basic variables
+      const { lng_key: lngKey, enc_state: encState } = request.headers;
+      const accessToken = baseHelper.getAccessToken(request);
 
       // Decide encryption mode. And enforce enc_state to be true if encryption is Strict
       const { ENCRYPTION_MODE } = JSON.parse(process.env.ENCRYPTION);
@@ -38,7 +41,11 @@ class executor {
       if (lngKey) this.setMemberVariable('lng_key', lngKey);
 
       // Finalize methodName including custom route
-      let methodName = baseHelper.getMethodName(request.pathParameters);
+      let methodName = baseHelper.getMethodName(request);
+      if (methodName.error) {
+        this.setResponse("METHOD_NOT_FOUND");
+        throw new Error(methodName.error);
+      }
       request.pathParameters = null;
       const { customMethodName, pathParameters } = baseHelper.getCustomRoute(methodName);
       if (customMethodName) {
@@ -86,7 +93,7 @@ class executor {
       const isFileExpected = baseHelper.isFileExpected(params);
       let requestData = baseHelper.parseRequestData(request, isFileExpected);
 
-      // If encyption is enabled, then decrypt the request data
+      // If encryption is enabled, then decrypt the request data
       if (!isFileExpected && encryptionState) {
         requestData = decrypt(requestData.data);
         if (typeof requestData === 'string')
@@ -94,7 +101,7 @@ class executor {
       }
       requestData = requestData ? requestData : {};
 
-      // Proccess and validate each parameters and set it as member variable
+      // Process and validate each parameters and set it as member variable
       for (let paramName in params) {
         let param = params[paramName];
         const parsedData = await parameterProcessor.processParameter(requestData[param.name]);
@@ -111,7 +118,6 @@ class executor {
       // Initiate and Execute method
       this.responseData = await actionInstance.executeMethod();
       const { responseString, responseOptions, packageName } = actionInstance.getResponseString();
-      const { responseCode, responseMessage } = this.getResponse(responseString, responseOptions, packageName);
       
       // If encryption mode is enabled then encrypt the response data
       if (encryptionState) {
@@ -119,24 +125,17 @@ class executor {
         this.responseData = encrypt(this.responseData);
       }
 
-      return {
-        responseCode,
-        responseMessage,
-        responseData: this.responseData
-      };
+      const response = this.getResponse(responseString, responseOptions, packageName);
+
+
+      return response;
     } catch (e) {
       console.log("Exception caught", e);
-      const { responseCode, responseMessage } = this.getResponse();
+      const response = this.getResponse(e === "NODE VERSION ERROR" ? e : "");
       if (process.env.MODE == "DEV" && e.message) this.setDebugMessage(e.message);
-      return {
-        responseCode,
-        responseMessage,
-        responseData: {}
-      };
+      return response;
     }
   }
-
-  /** HELPER METHODS */
 
   // TODO: In future we will move this to an Authorization class
   validateAccesstoken = async (accessToken) => {
@@ -192,6 +191,8 @@ class executor {
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
     const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
 
+    const CUSTOM_RESPONSE_TEMPLATE = require(path.resolve(process.cwd(), `src/config/responseTemplate.json`));
+
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
     if (packageName) {
@@ -206,25 +207,50 @@ class executor {
     if (!RESP[this.responseString]) {
       RESP = RESP["RESPONSE_CODE_NOT_FOUND"];
     } else {
-      RESP = RESP[this.responseString];
+      RESP = {...RESP[this.responseString]};
     }
 
-    this.responseCode = RESP.responseCode;
-    this.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key]
+    RESP.responseMessage = this.lng_key && RESP.responseMessage[this.lng_key]
       ? RESP.responseMessage[this.lng_key]
       : RESP.responseMessage[DEFAULT_LNG_KEY];
 
+    RESP.responseData = this.responseData;
+
     if (this.responseOptions)
       Object.keys(this.responseOptions).map(keyName => {
-        this.responseMessage = this.responseMessage.replace(keyName, this.responseOptions[keyName]);
-      });
+        RESP.responseMessage = RESP.responseMessage.replace(keyName, this.responseOptions[keyName]);      });
 
-    return {
-      responseCode: this.responseCode,
-      responseMessage: this.responseMessage,
-      responseData: this.responseData
-    };
+    return this.parseResponseData(CUSTOM_RESPONSE_TEMPLATE,RESP); 
   }
+
+  parseResponseData(CUSTOM_RESPONSE_TEMPLATE,RESP){
+    try{
+      Object.entries(RESP).forEach(array => {
+        const [key,value] = array;
+        if(typeof value === 'object'){
+          RESP[key] = "{" + JSON.stringify(value) + "}";
+        }
+      });
+      
+      const compiled = _.template(typeof CUSTOM_RESPONSE_TEMPLATE === 'string' ? CUSTOM_RESPONSE_TEMPLATE : JSON.stringify(CUSTOM_RESPONSE_TEMPLATE));
+
+      const resultTemplate = compiled(RESP);
+
+      const matcherObj = {
+          '"{{': '{',
+          '}}"': '}',
+          '"{[': '[',
+          ']}"': ']'
+      }
+
+      const replacedString = multiReplace(resultTemplate, matcherObj); 
+
+      return typeof CUSTOM_RESPONSE_TEMPLATE === 'string' ? replacedString : JSON.parse(replacedString);
+    }catch(error){
+      throw new Error("parseResponseData Error:"+error);
+    }
+  }
+  
 }
 
 module.exports = executor;
