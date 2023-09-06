@@ -224,7 +224,7 @@ class executor {
       Object.entries(RESP).forEach(array => {
         const [key,value] = array;
         if(typeof value === 'object'){
-          RESP[key] = JSON.stringify(value);
+          RESP[key] = "{" + JSON.stringify(value) + "}";
         }
       });
       
@@ -233,13 +233,13 @@ class executor {
       const resultTemplate = compiled(RESP);
 
       const matcherObj = {
-          '"{': '{',
-          '}"': '}',
-          '"[': '[',
-          ']"': ']'
+          '"{{': '{',
+          '}}"': '}',
+          '"{[': '[',
+          ']}"': ']'
       }
 
-      const replacedString =multiReplace(resultTemplate, matcherObj); 
+      const replacedString = multiReplace(resultTemplate, matcherObj); 
 
       return typeof CUSTOM_RESPONSE_TEMPLATE === 'string' ? replacedString : JSON.parse(replacedString);
     }catch(error){
