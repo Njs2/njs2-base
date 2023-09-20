@@ -86,6 +86,14 @@ class executor {
         actionInstance.setMemberVariable('userObj', data);
       }
 
+      // Parse the incoming request object and find if the metadata configs are present
+      // if present, group them under metadata key and make it action instance member
+      const metaConfig = process.env["METADATA"];
+      if(metaConfig && baseHelper.isJSON(metaConfig)) {
+        const metadata = baseHelper.populateMetadata(request, JSON.parse(metaConfig));
+        actionInstance.setMemberVariable('metadata', metadata);
+      }
+
       // validate & process request parameters
       const parameterProcessor = new ParameterProcessor();
       const params = initInstance.getParameter();

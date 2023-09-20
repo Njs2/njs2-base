@@ -136,6 +136,35 @@ class baseHelper {
         return null;
     }
   }
+
+  static populateMetadata(request, configs) {
+
+    if(configs.length == 0) return {}
+
+    const deepFindPropInRequestObject = this.deepFindPropMaker(request)
+
+    const keys = configs.map(key => key.trim());
+
+    let resultObj = {};
+
+    for (const key of keys) {
+      const value = deepFindPropInRequestObject(key);
+      if (value !== undefined) {
+        resultObj[key] = value;
+      }
+    }
+    return resultObj
+  }
+
+  static isJSON(str) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch (e) {
+        return false;
+    }
+  }
+
 }
 
 module.exports = baseHelper;
