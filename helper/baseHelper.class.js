@@ -129,7 +129,7 @@ class baseHelper {
         }
         for (let key in obj) {
             if (obj.hasOwnProperty(key)) {
-                let found = deepFindPropMaker(obj[key])(prop);
+                let found = this.deepFindPropMaker(obj[key])(prop);
                 if (found) return found;
             }
         }
