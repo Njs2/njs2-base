@@ -23,7 +23,7 @@ class executor {
       this.setResponse('UNKNOWN_ERROR');
       
       // Property finding factory
-      const findPropInRequest = deepFindPropMaker(request)
+      const findPropInRequest = baseHelper.deepFindPropMaker(request)
       
       // Find the basic variables from the incoming request
       // Initializng basic variables
