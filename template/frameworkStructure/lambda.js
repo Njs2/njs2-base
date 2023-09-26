@@ -13,16 +13,10 @@ app.use(upload.any());
 
 
 app.all('*', async function (req, res) {
-
-  console.log("INSIDE LAMBDA BODY")
-
   const {event} = req.apiGateway
-  let result = "All Ok!"
-
+  let result = {}
   try {
     const requestType = event.stageVariables.requestType;
-    console.log("INSIDE LAMBDA requestType: ", requestType)
-
     if (requestType === 'API') {
       result = await lambdaExecutor(event)
     } else if (requestType === 'Socket') {
@@ -36,7 +30,7 @@ app.all('*', async function (req, res) {
   } catch(error) {
     console.error(error)
     res.send({
-      responseCode: 200,
+      responseCode: 100011,
       responseMessage: "Something went wrong!",
       responseData: {}
     })
