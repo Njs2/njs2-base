@@ -3,7 +3,7 @@ AutoLoad.loadConfig();
 AutoLoad.loadModules();
 
 const { Executor, sockets } = require("@njs2/base");
-sockets.init();
+// sockets.init();
 
 const { CONNECTION_HANDLER_METHOD, DISCONNECTION_HANDLER_METHOD } = require('./src/global/constants');
 
