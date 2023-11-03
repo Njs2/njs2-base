@@ -7,7 +7,8 @@ AutoLoad = require('@njs2/base/base/autoload.class');
 AutoLoad.loadConfig();
 AutoLoad.loadModules();
 
-const { Executor } = require("@njs2/base");
+const { Executor, sockets } = require("@njs2/base");
+sockets.init();
 
 /* External Package imports */
 const app = express();
