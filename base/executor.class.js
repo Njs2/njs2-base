@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 
 // TODO: revisit global imports
 baseInitialize = require('./baseInitialize.class');
@@ -200,7 +201,7 @@ class executor {
     const BASE_RESPONSE = require(path.resolve(process.cwd(), `src/global/i18n/response.js`)).RESPONSE;
     const PROJECT_RESPONSE = require(`../i18n/response.js`).RESPONSE;
 
-    const CUSTOM_RESPONSE_TEMPLATE = require(path.resolve(process.cwd(), `src/config/responseTemplate.json`));
+    const CUSTOM_RESPONSE_TEMPLATE = this.getResponseTemplate();
 
     let RESP = { ...PROJECT_RESPONSE, ...BASE_RESPONSE };
 
@@ -232,6 +233,23 @@ class executor {
  
     return this.parseResponseData(CUSTOM_RESPONSE_TEMPLATE,RESP);      
 
+  }
+
+  getResponseTemplate() {
+    const defaultTemplate = {
+      "responseCode": "<%=responseCode%>",
+      "responseMessage": "<%=responseMessage%>",
+      "responseData": "<%=responseData%>"
+    }
+    const customResponseTemplatePath = `${process.cwd()}/src/config/responseTemplate.json`;
+
+    let template = defaultTemplate;
+
+    if (fs.existsSync(customResponseTemplatePath)) {
+      template = require(customResponseTemplatePath); 
+    }
+
+    return template;
   }
 
   parseResponseData(CUSTOM_RESPONSE_TEMPLATE,RESP){

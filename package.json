@@ -19,7 +19,8 @@
     "query-string": "^7.0.1",
     "require-dir": "^1.2.0",
     "serverless-http": "^3.2.0",
-    "socket.io": "^4.1.2"
+    "socket.io": "^4.1.2",
+    "string-multiple-replace": "^1.0.5"
   },
   "njs2-type": "base",
   "keywords": [],
