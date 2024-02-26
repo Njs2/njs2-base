@@ -120,6 +120,51 @@ class baseHelper {
 
     return requestData ? requestData : {};
   }
+
+  static deepFindPropMaker(obj) {
+    return (prop) => {
+        if (!obj || typeof obj !== 'object') return null;
+        if (obj.hasOwnProperty(prop) && obj[prop] !== null && obj[prop] !== undefined) {
+            return obj[prop];
+        }
+        for (let key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                let found = this.deepFindPropMaker(obj[key])(prop);
+                if (found) return found;
+            }
+        }
+        return null;
+    }
+  }
+
+  static populateMetadata(request, configs) {
+
+    if(configs.length == 0) return {}
+
+    const deepFindPropInRequestObject = this.deepFindPropMaker(request)
+
+    const keys = configs.map(key => key.trim());
+
+    let resultObj = {};
+
+    for (const key of keys) {
+      const value = deepFindPropInRequestObject(key);
+      if (value !== undefined) {
+        resultObj[key] = value;
+      }
+    }
+    return resultObj
+  }
+
+  static isJSON(str) {
+    try {
+        JSON.parse(str);
+        return true;
+    } catch (e) {
+        return false;
+    }
+  }
+
 }
 
 module.exports = baseHelper;

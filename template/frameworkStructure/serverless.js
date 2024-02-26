@@ -11,7 +11,7 @@ module.exports.execute = async (event) => {
     let fileCount = 0;
     if (event.headers["Content-Type"] === "application/x-www-form-urlencoded") {
       const querystring = require("querystring");
-      event.body = querystring.parse(event.body);
+      event.body = Object.assign({}, querystring.parse(event.body));
     }
 
     if (

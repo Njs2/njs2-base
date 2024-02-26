@@ -16,6 +16,7 @@
     "END_POINT": "",
     "LAMBDA_FUNCTION_NAME": ""
   },
+  "METADATA": [],
   "AUTH": {
     "AUTH_MODE": "JWT",
     "JWT_SECRET": "123",
