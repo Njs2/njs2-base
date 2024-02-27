@@ -266,10 +266,10 @@ class executor {
       const resultTemplate = compiled(RESP);
 
       const matcherObj = {
-          '"{{': '{',
-          '}}"': '}',
-          '"{[': '[',
-          ']}"': ']'
+          '{{': '{',
+          '}}': '}',
+          '{[': '[',
+          ']}': ']'
       }
 
       const replacedString = multiReplace(resultTemplate, matcherObj); 
