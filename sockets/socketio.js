@@ -1,7 +1,7 @@
 const path = require("path");
 const io = require("socket.io")({
   serveClient: false,
-  transports: ["websocket"],
+  transports: ["websocket", "polling"],
   cors: {
     origin: "*",
   },
