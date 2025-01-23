@@ -20,7 +20,13 @@ const init = () => {
     const id = socket.id;
     console.log("Socket connected :: ", id);
     socket.on("message", function (msg) {
-      const message = typeof msg == "string" ? JSON.parse(msg) : msg;
+      let message;
+      try {
+        message = typeof msg == "string" ? JSON.parse(msg) : msg;
+      } catch (e) {
+        console.log("Payload parse error", e);
+        return;
+      }
       require(path.resolve(process.cwd(), "socketio.js")).handler({
         requestContext: {
           connectionId: id,
